@@ -70,7 +70,8 @@ class AutoEncoder(nn.Module):
         # Implement the function as described in the docstring.             #
         # Use sigmoid activations for f and g.                              #
         #####################################################################
-        out = inputs
+        sig = nn.Sigmoid()
+        out = sig(self.h(sig(self.g(inputs))))
         #####################################################################
         #                       END OF YOUR CODE                            #
         #####################################################################
@@ -115,8 +116,10 @@ def train(model, lr, lamb, train_data, zero_train_data, valid_data, num_epoch):
 
             loss = torch.sum((output - target) ** 2.)
             loss.backward()
-
             train_loss += loss.item()
+
+            train_loss += lamb/2*model.get_weight_norm()
+
             optimizer.step()
 
         valid_acc = evaluate(model, zero_train_data, valid_data)
@@ -154,6 +157,7 @@ def evaluate(model, train_data, valid_data):
 
 
 def main():
+    device = torch.device("cuda")
     zero_train_matrix, train_matrix, valid_data, test_data = load_data()
 
     #####################################################################
@@ -162,13 +166,14 @@ def main():
     # validation set.                                                   #
     #####################################################################
     # Set model hyperparameters.
-    k = None
-    model = None
+    k_vals = [10, 50, 100, 200, 500]
+    k = k_vals[0] # TODO: Loop over k_vals once this works
+    model = AutoEncoder(train_matrix.shape[1], k)
 
     # Set optimization hyperparameters.
-    lr = None
-    num_epoch = None
-    lamb = None
+    lr = 0.05
+    num_epoch = 10
+    lamb = 0
 
     train(model, lr, lamb, train_matrix, zero_train_matrix,
           valid_data, num_epoch)

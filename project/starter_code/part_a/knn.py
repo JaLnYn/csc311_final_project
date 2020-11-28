@@ -1,5 +1,6 @@
 from sklearn.impute import KNNImputer
 from utils import *
+import matplotlib.pyplot as plt
 
 
 def knn_impute_by_user(matrix, valid_data, k):
@@ -18,8 +19,10 @@ def knn_impute_by_user(matrix, valid_data, k):
     nbrs = KNNImputer(n_neighbors=k)
     # We use NaN-Euclidean distance measure.
     mat = nbrs.fit_transform(matrix)
+    nbrs2 = KNNImputer(n_neighbors=k)
+    mat2 = nbrs2.fit_transform(matrix.T)
     acc = sparse_matrix_evaluate(valid_data, mat)
-    print("Validation Accuracy: {}".format(acc))
+    #print("Validation Accuracy: {}".format(acc))
     return acc
 
 
@@ -37,7 +40,9 @@ def knn_impute_by_item(matrix, valid_data, k):
     # TODO:                                                             #
     # Implement the function as described in the docstring.             #
     #####################################################################
-    acc = None
+    nbrs = KNNImputer(n_neighbors=k)
+    # Again, use NaN-Euclidean distance measure.
+    mat = nbrs.fit_transform(matrix.T) # take transpose to impute on
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -60,7 +65,21 @@ def main():
     # the best performance and report the test accuracy with the        #
     # chosen k*.                                                        #
     #####################################################################
-    pass
+    opt_k, opt_acc = None, float("-inf")
+    k_vals = [1, 6, 11, 16, 21, 26]
+    for k in k_vals:
+        acc = knn_impute_by_user(sparse_matrix, val_data, k)
+        if acc > opt_acc:
+            opt_acc = acc
+            opt_k = k
+        plt.plot(k, acc, "ro")
+    plt.show()
+
+    # Question 1a
+    print(f"Optimal k: {opt_k}, top accuracy for validation set: {opt_acc}")
+
+    # Question 1b
+    print(f"Test accuracy for k={opt_k}: {knn_impute_by_user(sparse_matrix, test_data, opt_k)}")
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
