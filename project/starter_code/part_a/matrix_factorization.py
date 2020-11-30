@@ -1,6 +1,7 @@
 from utils import *
 from scipy.linalg import sqrtm
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -80,6 +81,19 @@ def update_u_z(train_data, lr, u, z):
     c = train_data["is_correct"][i]
     n = train_data["user_id"][i]
     q = train_data["question_id"][i]
+
+    cur_u = u[ n]
+    cur_z = z[ q]
+    # print('------------------------')
+    # print(c)
+    # print(np.dot( cur_u.T ,cur_z))
+    # print(c - np.dot( cur_u.T ,cur_z))
+    # print(cur_z.shape)
+    # print(cur_u.shape)
+    u[n] = cur_u + lr * (c - np.dot( cur_u.T ,cur_z)) * cur_z
+    z[q] = cur_z + lr * (c - np.dot( cur_u.T ,cur_z)) * cur_u
+
+
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -96,17 +110,30 @@ def als(train_data, k, lr, num_iteration):
     :param num_iteration: int
     :return: 2D reconstructed Matrix.
     """
+
     # Initialize u and z
     u = np.random.uniform(low=0, high=1 / np.sqrt(k),
                           size=(len(set(train_data["user_id"])), k))
     z = np.random.uniform(low=0, high=1 / np.sqrt(k),
                           size=(len(set(train_data["question_id"])), k))
-
+    
     #####################################################################
     # TODO:                                                             #
     # Implement the function as described in the docstring.             #
     #####################################################################
-    mat = None
+    # itterations = [None] * int(num_iteration//250)
+    # results = [None] * int(num_iteration//250)
+    for i in range(num_iteration):
+        u,z = update_u_z(train_data, lr, u,z)
+        # print(results[i])
+        # if i%250 == 0:
+        #     itterations[i//250] = i
+        #     results[i//250] = squared_error_loss(train_data,u,z)
+    # plt.plot(itterations,results, label = 'square_err')
+    # plt.legend()
+    # plt.savefig('../figs/matrix_als_k'+str(k))
+    # plt.cla()
+    mat = np.dot(u, z.T)
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -119,12 +146,39 @@ def main():
     val_data = load_valid_csv("../data")
     test_data = load_public_test_csv("../data")
 
+    
     #####################################################################
     # TODO:                                                             #
     # (SVD) Try out at least 5 different k and select the best k        #
     # using the validation set.                                         #
     #####################################################################
-    pass
+    run_svd = 0
+    run_als = 1
+    if run_svd == 1:
+        k_values = [4,6,8,10,12]
+        k_performance = [None] * 5
+        k_star = 0
+        # print(len(val_data))
+        # print(len(val_data['user_id']))
+        # print(len(val_data['question_id']))
+        # print(len(val_data['is_correct']))
+
+        for i in range(len(k_values)):
+            factorized_matrix = svd_reconstruct(train_matrix,k_values[i])
+            cur_score = 0
+            for n in range(len(val_data['user_id'])):
+
+                if (int(factorized_matrix.item(val_data['user_id'][n], val_data['question_id'][n]) > 0.5) == val_data['is_correct'][n]):
+                    cur_score += 1
+            k_performance[i] = cur_score/len(val_data['user_id'])
+            if k_performance[k_star] < k_performance[i]:
+                k_star = i
+        print("We find that the best value for k, k* is", k_values[k_star] )
+        plt.plot(k_values,k_performance, label = 'correct_accuracy')
+        plt.legend()
+        plt.savefig('../figs/matrix_fac_svd')
+        plt.cla()
+
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -134,7 +188,27 @@ def main():
     # (ALS) Try out at least 5 different k and select the best k        #
     # using the validation set.                                         #
     #####################################################################
-    pass
+    if run_als == 1:
+        k_values = [4,6,8,10,12]
+        k_performance = [None] * 5
+        k_star = 0
+        #for i in range(len(k_values)):
+        for i in range(len(k_values)):
+            factorized_matrix = als(train_data,k_values[i],0.3, 10000)
+            cur_score = 0
+            for n in range(len(val_data['user_id'])):
+                if (int(factorized_matrix.item(val_data['user_id'][n], val_data['question_id'][n]) > 0.5) == val_data['is_correct'][n]):
+                    cur_score += 1
+            k_performance[i] = cur_score/len(val_data['user_id'])
+            print(k_performance[i])
+            # if k_performance[k_star] < k_performance[i]:
+            #     k_star = i
+
+            # k_performance[i] = cur_score/len(val_data['user_id'])
+            # if k_performance[k_star] < k_performance[i]:
+            #     k_star = i
+            
+
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
