@@ -133,6 +133,7 @@ def als(train_data, k, lr, num_iteration):
     # plt.legend()
     # plt.savefig('../figs/matrix_als_k'+str(k))
     # plt.cla()
+    print(squared_error_loss(train_data,u,z))
     mat = np.dot(u, z.T)
     #####################################################################
     #                       END OF YOUR CODE                            #
@@ -189,12 +190,12 @@ def main():
     # using the validation set.                                         #
     #####################################################################
     if run_als == 1:
-        k_values = [4,6,8,10,12]
+        k_values = [5,10,15,20,25]
         k_performance = [None] * 5
         k_star = 0
         #for i in range(len(k_values)):
         for i in range(len(k_values)):
-            factorized_matrix = als(train_data,k_values[i],0.3, 10000)
+            factorized_matrix = als(train_data,k_values[i],0.3, 20000)
             cur_score = 0
             for n in range(len(val_data['user_id'])):
                 if (int(factorized_matrix.item(val_data['user_id'][n], val_data['question_id'][n]) > 0.5) == val_data['is_correct'][n]):
