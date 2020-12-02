@@ -1,6 +1,7 @@
 from utils import *
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def sigmoid(x):
@@ -25,10 +26,63 @@ def neg_log_likelihood(data, theta, beta):
     # Implement the function as described in the docstring.             #
     #####################################################################
     log_lklihood = 0.
+    input_size = len(data['question_id'])
+
+    for i in range(input_size):
+        question_id = data['question_id'][i]
+        user_id = data['user_id'][i]
+        prediction = data['is_correct'][i]
+        log_lklihood += prediction * (theta[user_id] - beta[question_id]) - \
+                        np.log(1 + np.exp(theta[user_id] - beta[question_id]))
+
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
     return -log_lklihood
+
+
+def derivative_theta(data, theta, beta):
+    """Compute derivative of MLE respect to theta
+
+    :param data:
+    :param theta:
+    :param beta:
+    :return:
+    """
+    theta_derivative = np.zeros((len(theta), 1))
+    student_num = data.shape[0]
+    question_num = data.shape[1]
+
+    for i in range(student_num):
+        derivative = 0
+        for j in range(question_num):
+            c_ij = data[i, j]
+            if c_ij == 0 or c_ij == 1:
+                derivative += c_ij - 1 / (1 + 1/np.exp(theta[i] - beta[j]))
+        theta_derivative[i] = derivative
+    return theta_derivative
+
+
+def derivative_beta(data, theta, beta):
+    """Compute derivative of MLE respect to beta
+
+        :param data:
+        :param theta:
+        :param beta:
+        :return:
+        """
+    beta_derivative = np.zeros((len(beta), 1))
+    student_num = data.shape[0]
+    question_num = data.shape[1]
+
+    for j in range(question_num):
+        derivative = 0
+        for i in range(student_num):
+            c_ij = data[i, j]
+            if c_ij == 0 or c_ij == 1:
+                derivative += (- c_ij) + 1 / (1 + 1/np.exp(theta[i] - beta[j]))
+        beta_derivative[j] = derivative
+    return beta_derivative
 
 
 def update_theta_beta(data, lr, theta, beta):
@@ -52,20 +106,24 @@ def update_theta_beta(data, lr, theta, beta):
     # TODO:                                                             #
     # Implement the function as described in the docstring.             #
     #####################################################################
-    pass
+    theta_derivative = derivative_theta(data, theta, beta)
+    theta += lr * theta_derivative
+    beta_derivative = derivative_beta(data, theta, beta)
+    beta += lr * beta_derivative
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
     return theta, beta
 
 
-def irt(data, val_data, lr, iterations):
+def irt(train_data, train_sparse, val_data, lr, iterations):
     """ Train IRT model.
 
     You may optionally replace the function arguments to receive a matrix.
 
-    :param data: A dictionary {user_id: list, question_id: list,
+    :param train_data: A dictionary {user_id: list, question_id: list,
     is_correct: list}
+    :param train_sparse: a sparse training data
     :param val_data: A dictionary {user_id: list, question_id: list,
     is_correct: list}
     :param lr: float
@@ -73,20 +131,30 @@ def irt(data, val_data, lr, iterations):
     :return: (theta, beta, val_acc_lst)
     """
     # TODO: Initialize theta and beta.
-    theta = None
-    beta = None
+    theta_len = train_sparse.shape[0]
+    beta_len = train_sparse.shape[1]
+    theta = np.zeros((theta_len, 1))
+    beta = np.zeros((beta_len, 1))
 
     val_acc_lst = []
+    train_loglikes = []
+    valid_loglikes = []
 
     for i in range(iterations):
-        neg_lld = neg_log_likelihood(data, theta=theta, beta=beta)
+        train_neg_lld = neg_log_likelihood(train_data, theta=theta, beta=beta)
+        train_loglikes.append(train_neg_lld)
+
+        valid_loglike = neg_log_likelihood(val_data, theta, beta)
+        valid_loglikes.append(valid_loglike)
+
         score = evaluate(data=val_data, theta=theta, beta=beta)
         val_acc_lst.append(score)
-        print("NLLK: {} \t Score: {}".format(neg_lld, score))
-        theta, beta = update_theta_beta(data, lr, theta, beta)
+        # print("NLLK: {} \t Score: {}".format(train_neg_lld, score))
+        theta, beta = update_theta_beta(train_sparse, lr, theta, beta)
 
     # TODO: You may change the return values to achieve what you want.
-    return theta, beta, val_acc_lst
+
+    return theta, beta, train_loglikes, valid_loglikes
 
 
 def evaluate(data, theta, beta):
@@ -120,7 +188,21 @@ def main():
     # Tune learning rate and number of iterations. With the implemented #
     # code, report the validation and test accuracy.                    #
     #####################################################################
-    pass
+    lr = 0.016
+    theta, beta, train_log, valid_log = irt(train_data, sparse_matrix,
+                                            val_data, lr, 10)
+    # plot log-likelihood as training process
+    num_iter = [i for i in range(10)]
+    plt.plot(num_iter, valid_log, linestyle='--',
+             color='b', label="validation")
+    plt.plot(num_iter, train_log, linestyle='--',
+             color='r', label="train")
+    plt.title("Change for log likelihoods")
+    plt.xlabel('Iterations', fontsize=14)
+    plt.ylabel('loglike', fontsize=14)
+    plt.legend(loc=1)
+    plt.show()
+
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -129,7 +211,11 @@ def main():
     # TODO:                                                             #
     # Implement part (c)                                                #
     #####################################################################
-    pass
+    # final train and test accuracies
+    valid_accuracy = evaluate(val_data, theta, beta)
+    test_accuracy = evaluate(test_data, theta, beta)
+    print("Final validation accuracy: {}\n".format(valid_accuracy))
+    print("Final test accuracy: {}\n".format(test_accuracy))
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -137,3 +223,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
