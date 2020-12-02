@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1606438657 "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.tex" "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.pdf" "project_writeup" 1606438658
-  "../figs/knn_item.png" 1606437195 16499 48b4e3635e645a01d21c898eb60547d7 ""
-  "../figs/knn_user.png" 1606437139 20893 7fa29f4b13790039df0103e835b669dc ""
-  "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.aux" 1606438658 57 619b67dd3451499dc813b2d4730366a3 ""
+["pdflatex"] 1606538732 "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.tex" "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.pdf" "project_writeup" 1606538786
+  "../figs/knn_item.png" 1606538786 16499 48b4e3635e645a01d21c898eb60547d7 ""
+  "../figs/knn_user.png" 1606538731 20893 7fa29f4b13790039df0103e835b669dc ""
+  "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.aux" 1606538732 57 619b67dd3451499dc813b2d4730366a3 ""
   "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.tex" 1606438657 2553 097360cfe7e0a5c349ac05f631c785db ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1591545468 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1591545468 1004 54797486969f23fa377b128694d548df ""
@@ -63,11 +63,11 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1591545468 33301 a3134070eacafb10b1f371612ce2650d ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1604942293 4724469 fae8ba91363d50b5e13d5b17ff985631 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1604942245 2514050 d8bfa870b17de508bf3d723ab4b27b36 ""
-  "project_writeup.aux" 1606438658 57 619b67dd3451499dc813b2d4730366a3 "pdflatex"
+  "project_writeup.aux" 1606538732 57 619b67dd3451499dc813b2d4730366a3 "pdflatex"
   "project_writeup.tex" 1606438657 2553 097360cfe7e0a5c349ac05f631c785db ""
   (generated)
   "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.log"
   "project_writeup.pdf"
-  "project_writeup.log"
-  "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.pdf"
   "project_writeup.aux"
+  "/home/jalnyn/Documents/unistf/CSC311/project/starter_code/writeup/project_writeup.pdf"
+  "project_writeup.log"
