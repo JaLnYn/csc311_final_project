@@ -189,7 +189,7 @@ def squared_error_loss(data, u, z):
     return 0.5 * loss
 
 
-def update_u_z(train_data, lr, u, z, amt_u, amt_z, lmd):
+def update_u_z_b(train_data, lr, u, z,bi,bj, amt_u, amt_z, lmd):
     """ Return the updated U and Z after applying
     stochastic gradient descent for matrix completion.
 
@@ -240,6 +240,11 @@ def als(train_data, k, lr, num_iteration, lmd):
     # calculating
     num_u = len(set(train_data["user_id"]))
     num_q = len(set(train_data["question_id"]))
+
+    total = num_u*num_q
+    amt_of_data = len(train_data["user_id"])
+    print("sparsity", amt_of_data/total)
+
     amt_user = [0] * num_u
     amt_ques = [0] * num_q
     print(num_u, num_q)
@@ -257,7 +262,13 @@ def als(train_data, k, lr, num_iteration, lmd):
                           size=(num_u, k))
     z = np.random.uniform(low=0, high=1 / np.sqrt(k),
                           size=(num_q, k))
+    bi = np.random.uniform(low=0, high=1 / np.sqrt(k),
+                          size=(num_q, k))
+    bj = np.random.uniform(low=0, high=1 / np.sqrt(k),
+                          size=(num_q, k))
     
+
+
     #####################################################################
     # TODO:                                                             #
     # Implement the function as described in the docstring.             #
@@ -319,7 +330,7 @@ def final_guess_func(nn_guess,sgd_guess):
     ## make functions go from -.5 to .5
     nn_new = conf_weight(nn_guess)/8
     sgd_new = sgd_guess - .5
-    return nn_new + sgd_new + .5 
+    return 0*nn_new + sgd_new + .5 
 
 def new_eval(nn_model, sgd_matrix, train_data, test_data):
     nn_model.eval()
