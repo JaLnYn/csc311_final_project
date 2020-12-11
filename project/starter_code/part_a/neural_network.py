@@ -168,15 +168,14 @@ def main():
     # Set model hyperparameters.
     k_vals = [10, 50, 100, 200, 500]
     k = k_vals[0] # TODO: Loop over k_vals once this works
-    model = AutoEncoder(train_matrix.shape[1], k)
+    model = AutoEncoder(train_matrix.shape[1], 10)
 
     # Set optimization hyperparameters.
     lr = 0.05
     num_epoch = 10
     lamb = 0
 
-    train(model, lr, lamb, train_matrix, zero_train_matrix,
-          valid_data, num_epoch)
+    train(model, 0.05, 0.1, train_matrix, zero_train_matrix, valid_data, 10)
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################

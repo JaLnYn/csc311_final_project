@@ -191,11 +191,12 @@ def main():
     #####################################################################
     if run_als == 1:
         k_values = [5,10,15,20,25]
+        k_values = [35]
         k_performance = [None] * 5
         k_star = 0
         #for i in range(len(k_values)):
         for i in range(len(k_values)):
-            factorized_matrix = als(train_data,k_values[i],0.3, 20000)
+            factorized_matrix = als(train_data,k_values[i],0.01, 500000)
             cur_score = 0
             for n in range(len(val_data['user_id'])):
                 if (int(factorized_matrix.item(val_data['user_id'][n], val_data['question_id'][n]) > 0.5) == val_data['is_correct'][n]):
