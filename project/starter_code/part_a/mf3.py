@@ -317,30 +317,39 @@ def als(train_data, k, lr, num_iteration, lmd):
     best_72 = 100000000
     best_71 = 100000000
     best_715 = 100000000
+    best_loss = 775
     for i in range(num_iteration):
-        if i%(100) == 0:
-            evaluation = evaluate_sgd(np.dot(u, z.T), bu,bz, mu, val_data)
+        if i%(32) == 0:
+            #evaluation = evaluate_sgd(np.dot(u, z.T), bu,bz, mu, val_data)
+
+            loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
             if i%(num_iteration/100) == 0:
                 print(i, "out of ", num_iteration, i/num_iteration)
-                print(evaluation)
-            if evaluation >= 0.72:
-                loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
-                if loss < best_72:
-                    print("wow!!!!!", evaluation, loss)
-                    sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_72")
-                    best_72 = loss
-            elif evaluation >= 0.715:
-                loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
-                if loss < best_715:
-                    print("715!!!!!", evaluation, loss)
-                    sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_715")
-                    best_715 = loss
-            elif evaluation >= 0.71:
-                loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
-                if loss < best_71:
-                    print("71!!!!!", evaluation, loss)
-                    sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_71")
-                    best_71 = loss
+                print(loss)
+            if loss < best_loss:
+                evaluation = evaluate_sgd(np.dot(u, z.T), bu,bz, mu, val_data)
+                print("wow!!!!!", evaluation, loss)
+                sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_loss")
+                best_loss = loss
+
+            # if evaluation >= 0.72:
+            #     loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
+            #     if loss < best_72:
+            #         print("wow!!!!!", evaluation, loss)
+            #         sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_72")
+            #         best_72 = loss
+            # elif evaluation >= 0.715:
+            #     loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
+            #     if loss < best_715:
+            #         print("715!!!!!", evaluation, loss)
+            #         sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_715")
+            #         best_715 = loss
+            # elif evaluation >= 0.71:
+            #     loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
+            #     if loss < best_71:
+            #         print("71!!!!!", evaluation, loss)
+            #         sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_71")
+            #         best_71 = loss
         u,z,bu,bz = update_u_z_b(train_data, lr, u,z,bu,bz,mu, amt_user, amt_ques, lmd)
     print(squared_error_loss(val_data,u,z,bu,bz,mu,lmd))
     mat = np.dot(u, z.T) + mu
@@ -361,7 +370,7 @@ def final_guess_func(nn_guess,sgd_guess):
     sgd_new = sgd_guess - .5
     return 0*nn_new + sgd_new + .5 
 
-def new_eval(nn_model, sgd_matrix, train_data, test_data):
+def new_eval(nn_model, sgd_matrix, bu, bz,mu, train_data, test_data):
     nn_model.eval()
 
     total = 0
@@ -374,7 +383,9 @@ def new_eval(nn_model, sgd_matrix, train_data, test_data):
         output = nn_model(inputs)
 
         nn_guess = output[0][test_data["question_id"][i]].item()
-        sgd_guess = sgd_matrix.item(test_data['user_id'][i], test_data['question_id'][i])
+        x = test_data['user_id'][i]
+        y = test_data['question_id'][i]
+        sgd_guess = sgd_matrix.item(x, y) + bu[x] + bz[y] + mu
         total+=1
         #print(nn_guess, sgd_guess)
         final_guess = final_guess_func(nn_guess,sgd_guess)
@@ -390,11 +401,9 @@ def new_eval(nn_model, sgd_matrix, train_data, test_data):
         """
         if (final_guess >= .5) == test_data["is_correct"][i]:
             correct += 1
-        
-
     print("eval:" + str(correct/float(total)))
 
-def eval_private(nn_model, sgd_matrix, train_data, private_data):
+def eval_private(nn_model, sgd_matrix, bu, bz,mu, train_data, private_data):
     nn_model.eval()
 
     total = 0
@@ -410,7 +419,11 @@ def eval_private(nn_model, sgd_matrix, train_data, private_data):
         output = nn_model(inputs)
 
         nn_guess = output[0][private_data["question_id"][i]].item()
-        sgd_guess = sgd_matrix.item(private_data['user_id'][i], private_data['question_id'][i])
+        
+        x = test_data['user_id'][i]
+        y = test_data['question_id'][i]
+        sgd_guess = sgd_matrix.item(x, y) + bu[x] + bz[y] + mu
+        
         total+=1
         #print(nn_guess, sgd_guess)
         final_guess = final_guess_func(nn_guess,sgd_guess)
@@ -434,9 +447,9 @@ def main():
     run_sgd = 1
     run_nn = 1
     nn_load = 1
-    sgd_load = 0
+    shoud_sgd_load = 0
     nn_model_path = "./models/nn"
-    sgd_model_path = "./models/sgd_71"
+    sgd_model_path = "./models/sgd_loss"
     #np.save(sgd_model_path, sgd_matrix)   
     nn_model = None
     sgd_matrix = None
@@ -457,17 +470,16 @@ def main():
     generate_priv = 0
     
 
-    if sgd_load == 1:
+    if shoud_sgd_load == 1:
         sgd_matrix, sgd_bu, sgd_bz = sgd_load(sgd_model_path)
     elif run_sgd == 1:
         k_value = 35
         # prev 2000000
         # prev 1250000
-        sgd_matrix, sgd_bu, sgd_bz = als(train_data,k_value,0.01, 2000000, 0.05)
+        sgd_matrix, sgd_bu, sgd_bz = als(train_data,k_value,0.01, 2000000, 0.065)
         cur_score = 0
         print("done training sgd")
-    print(evaluate_sgd(sgd_matrix, bu,bz, mu, test_data))
-    print(squared_error_loss(test_data,u,z,bu,bz,mu,0.05))
+    print(evaluate_sgd(sgd_matrix, sgd_bu, sgd_bz, mu, val_data))
                
     zero_train_matrix, train_matrix, valid_data, test_data = load_data()
     if nn_load == 1:
@@ -484,7 +496,7 @@ def main():
         torch.save(nn_model.state_dict(), nn_model_path)
         print("done training nn")
     print(evaluate_nn(nn_model, zero_train_matrix, val_data))
-    new_eval(nn_model, sgd_matrix, zero_train_matrix, test_data)
+    new_eval(nn_model, sgd_matrix, sgd_bu, sgd_bz, mu, zero_train_matrix, test_data)
     if generate_priv == 1: 
         eval_private(nn_model, sgd_matrix, zero_train_matrix, private_data)
 
