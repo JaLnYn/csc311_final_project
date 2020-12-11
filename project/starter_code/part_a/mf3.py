@@ -201,7 +201,8 @@ def squared_error_loss(data, u, z, bu, bz, mu, lmd):
         j = data['user_id'][n]
         #print(bu[u],bz[q],mu,factorized_matrix.item(u, q))
         loss += (data['is_correct'][n] - (dot.item(j,q) + bu[j] + bz[q] + mu))**2
-        loss += lmd*(np.dot(u.T,u) + np.dot(z.T,z) + bu[j]**2 + bz[q]**2)
+        
+        loss += lmd*(np.dot(u[j].T,u[j]) + np.dot(z[q].T,z[q]) + bu[j]**2 + bz[q]**2)
     return 1/2*loss
 
 def update_u_z_b(train_data, lr, u, z,bu , bz, mu, amt_u, amt_z, lmd):
@@ -246,14 +247,15 @@ def update_u_z_b(train_data, lr, u, z,bu , bz, mu, amt_u, amt_z, lmd):
 def sgd_save(matrix, bu, bz, path):
     path_1 = path + "_mat"
     path_2 = path + "_bu"
-    path_2 = path + "_bz"
+    path_3 = path + "_bz"
     np.save(path_1, matrix)   
     np.save(path_2, bu)   
-    np.save(path_3, bz)   
+    np.save(path_3, bz)  
+
 def sgd_load(path):
     path_1 = path + "_mat"+ '.npy'
     path_2 = path + "_bu"+ '.npy'
-    path_2 = path + "_bz"+ '.npy'
+    path_3 = path + "_bz"+ '.npy'
 
     mat = np.load(path_1 )
     bu = np.load(path_2 )
