@@ -174,13 +174,12 @@ def evaluate_nn(model, train_data, valid_data):
 # sgd stuff              #
 ##########################
 
-def evaluate_sgd(factorized_matrix, bu,bz,mu,test_data):
+def evaluate_sgd(factorized_matrix, test_data):
     cur_score = 0
     for n in range(len(test_data['user_id'])):
         q = test_data['question_id'][n]
         u = test_data['user_id'][n]
-        #print(bu[u],bz[q],mu,factorized_matrix.item(u, q))
-        if (int(factorized_matrix.item(u, q)  + bu[u] + bz[q] + mu> 0.5) == test_data['is_correct'][n]):
+        if (int(factorized_matrix.item(u, q)>= 0.5) == test_data['is_correct'][n]):
             cur_score += 1
     stats = cur_score/len(test_data['user_id'])
     return stats
@@ -244,23 +243,15 @@ def update_u_z_b(train_data, lr, u, z,bu , bz, mu, amt_u, amt_z, lmd):
     #                       END OF YOUR CODE                            #
     #####################################################################
     return u, z, bu,bz
-def sgd_save(matrix, bu, bz, path):
+def sgd_save(matrix, path):
     path_1 = path + "_mat"
-    path_2 = path + "_bu"
-    path_3 = path + "_bz"
     np.save(path_1, matrix)   
-    np.save(path_2, bu)   
-    np.save(path_3, bz)  
 
 def sgd_load(path):
     path_1 = path + "_mat"+ '.npy'
-    path_2 = path + "_bu"+ '.npy'
-    path_3 = path + "_bz"+ '.npy'
 
     mat = np.load(path_1 )
-    bu = np.load(path_2 )
-    bz = np.load(path_3 )
-    return mat,bu,bz
+    return mat
 
 
 
@@ -303,8 +294,8 @@ def als(train_data, k, lr, num_iteration, lmd):
                           size=(num_u, k))
     z = np.random.uniform(low=0, high=1 / np.sqrt(k),
                           size=(num_q, k))
-    bu = np.zeros((num_u, 1))
-    bz = np.zeros((num_q, 1))
+    bu = np.zeros((num_u,1))
+    bz = np.zeros((num_q,1))
     mu = mu/tot_obs_data
 
     #####################################################################
@@ -317,19 +308,22 @@ def als(train_data, k, lr, num_iteration, lmd):
     best_72 = 100000000
     best_71 = 100000000
     best_715 = 100000000
-    best_loss = 775
+    best_loss = 1000
     for i in range(num_iteration):
-        if i%(32) == 0:
-            #evaluation = evaluate_sgd(np.dot(u, z.T), bu,bz, mu, val_data)
+        if i%(100) == 0:
+            cur_mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
+            evaluation = None
 
             loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
             if i%(num_iteration/100) == 0:
+                evaluation = evaluate_sgd( cur_mat, val_data)
                 print(i, "out of ", num_iteration, i/num_iteration)
                 print(loss)
             if loss < best_loss:
-                evaluation = evaluate_sgd(np.dot(u, z.T), bu,bz, mu, val_data)
+                if evaluation == None:
+                    evaluation = evaluate_sgd(cur_mat, val_data)
                 print("wow!!!!!", evaluation, loss)
-                sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_loss")
+                sgd_save(cur_mat, "./models/sgd_test")
                 best_loss = loss
 
             # if evaluation >= 0.72:
@@ -352,11 +346,11 @@ def als(train_data, k, lr, num_iteration, lmd):
             #         best_71 = loss
         u,z,bu,bz = update_u_z_b(train_data, lr, u,z,bu,bz,mu, amt_user, amt_ques, lmd)
     print(squared_error_loss(val_data,u,z,bu,bz,mu,lmd))
-    mat = np.dot(u, z.T) + mu
+    mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
-    return mat,bu,bz
+    return mat
 def conf_weight(x):
     if x < 0.2:
         return -1/(1+((x-0.7+1)/(1-x-1))**(-3))
@@ -370,7 +364,7 @@ def final_guess_func(nn_guess,sgd_guess):
     sgd_new = sgd_guess - .5
     return 0*nn_new + sgd_new + .5 
 
-def new_eval(nn_model, sgd_matrix, bu, bz,mu, train_data, test_data):
+def new_eval(nn_model, sgd_matrix, train_data, test_data):
     nn_model.eval()
 
     total = 0
@@ -385,7 +379,7 @@ def new_eval(nn_model, sgd_matrix, bu, bz,mu, train_data, test_data):
         nn_guess = output[0][test_data["question_id"][i]].item()
         x = test_data['user_id'][i]
         y = test_data['question_id'][i]
-        sgd_guess = sgd_matrix.item(x, y) + bu[x] + bz[y] + mu
+        sgd_guess = sgd_matrix.item(x, y)
         total+=1
         #print(nn_guess, sgd_guess)
         final_guess = final_guess_func(nn_guess,sgd_guess)
@@ -403,7 +397,7 @@ def new_eval(nn_model, sgd_matrix, bu, bz,mu, train_data, test_data):
             correct += 1
     print("eval:" + str(correct/float(total)))
 
-def eval_private(nn_model, sgd_matrix, bu, bz,mu, train_data, private_data):
+def eval_private(nn_model, sgd_matrix,train_data, private_data):
     nn_model.eval()
 
     total = 0
@@ -420,9 +414,9 @@ def eval_private(nn_model, sgd_matrix, bu, bz,mu, train_data, private_data):
 
         nn_guess = output[0][private_data["question_id"][i]].item()
         
-        x = test_data['user_id'][i]
-        y = test_data['question_id'][i]
-        sgd_guess = sgd_matrix.item(x, y) + bu[x] + bz[y] + mu
+        x = private_data['user_id'][i]
+        y = private_data['question_id'][i]
+        sgd_guess = sgd_matrix.item(x, y)
         
         total+=1
         #print(nn_guess, sgd_guess)
@@ -447,14 +441,12 @@ def main():
     run_sgd = 1
     run_nn = 1
     nn_load = 1
-    shoud_sgd_load = 0
+    shoud_sgd_load = 1
     nn_model_path = "./models/nn"
-    sgd_model_path = "./models/sgd_loss"
+    sgd_model_path = "./models/sgd_test"
     #np.save(sgd_model_path, sgd_matrix)   
     nn_model = None
     sgd_matrix = None
-    sgd_bu = None
-    sgd_bz = None
     tot_obs_data = 0
     mu = 0
     for i in range(len(train_data["user_id"])):
@@ -471,15 +463,15 @@ def main():
     
 
     if shoud_sgd_load == 1:
-        sgd_matrix, sgd_bu, sgd_bz = sgd_load(sgd_model_path)
+        sgd_matrix = sgd_load(sgd_model_path)
     elif run_sgd == 1:
         k_value = 35
         # prev 2000000
         # prev 1250000
-        sgd_matrix, sgd_bu, sgd_bz = als(train_data,k_value,0.01, 2000000, 0.065)
+        sgd_matrix = als(train_data,k_value,0.01, 100000, 0.065)
         cur_score = 0
         print("done training sgd")
-    print(evaluate_sgd(sgd_matrix, sgd_bu, sgd_bz, mu, val_data))
+    print(evaluate_sgd(sgd_matrix, val_data))
                
     zero_train_matrix, train_matrix, valid_data, test_data = load_data()
     if nn_load == 1:
@@ -496,7 +488,7 @@ def main():
         torch.save(nn_model.state_dict(), nn_model_path)
         print("done training nn")
     print(evaluate_nn(nn_model, zero_train_matrix, val_data))
-    new_eval(nn_model, sgd_matrix, sgd_bu, sgd_bz, mu, zero_train_matrix, test_data)
+    new_eval(nn_model, sgd_matrix, zero_train_matrix, test_data)
     if generate_priv == 1: 
         eval_private(nn_model, sgd_matrix, zero_train_matrix, private_data)
 
