@@ -204,7 +204,7 @@ def squared_error_loss(data, u, z, bu, bz, mu, lmd):
         loss += lmd*(np.dot(u[j].T,u[j]) + np.dot(z[q].T,z[q]) + bu[j]**2 + bz[q]**2)
     return 1/2*loss
 
-def update_u_z_b(train_data, lr, u, z,bu , bz, mu, amt_u, amt_z, lmd):
+def update_u_z_b(train_data, lr, u, z,bu , bz, mu, lmd):
     """ Return the updated U and Z after applying
     stochastic gradient descent for matrix completion.
 
@@ -234,8 +234,8 @@ def update_u_z_b(train_data, lr, u, z,bu , bz, mu, amt_u, amt_z, lmd):
     #z[q] = cur_z - lr * (-(c - np.dot( cur_u.T ,cur_z)) * cur_u )
     cur_bu = bu[n]
     cur_bz = bz[q]
-    u[n] = cur_u - lr * (-(c - mu - cur_bu - cur_bz - dot ) * cur_z + lmd*amt_u[n]*cur_u)
-    z[q] = cur_z - lr * (-(c - mu - cur_bu - cur_bz - dot) * cur_u + lmd*amt_z[n]*cur_z)
+    u[n] = cur_u - lr * (-(c - mu - cur_bu - cur_bz - dot ) * cur_z + lmd*cur_u)
+    z[q] = cur_z - lr * (-(c - mu - cur_bu - cur_bz - dot) * cur_u + lmd*cur_z)
     bu[n] = cur_bu - lr * (-(c - mu - cur_bu - cur_bz - dot)  + lmd*cur_bu)
     bz[q] = cur_bz - lr * (-(c - mu - cur_bu - cur_bz - dot)  + lmd*cur_bz)
 
@@ -275,18 +275,18 @@ def als(train_data, k, lr, num_iteration, lmd):
     amt_of_data = len(train_data["user_id"])
     print("sparsity", amt_of_data/total)
     
-    amt_user = [0] * num_u
-    amt_ques = [0] * num_q
+    # amt_user = [0] * num_u
+    # amt_ques = [0] * num_q
     print(num_u, num_q)
     for i in range(len(train_data["user_id"])):
-        amt_user[train_data["user_id"][i]] +=1
-        amt_ques[train_data["question_id"][i]] +=1
+        # amt_user[train_data["user_id"][i]] +=1
+        # amt_ques[train_data["question_id"][i]] +=1
         tot_obs_data += 1
         mu += train_data["is_correct"][i]
-    for i in range(num_u):
-        amt_user[i] = amt_user[i]/num_u
-    for i in range(num_u):
-        amt_ques[i] = amt_ques[i]/num_q
+    # for i in range(num_u):
+    #     amt_user[i] = amt_user[i]/num_u
+    # for i in range(num_u):
+    #     amt_ques[i] = amt_ques[i]/num_q
     #print(amt_user)
 
     # Initialize u and z
@@ -308,23 +308,24 @@ def als(train_data, k, lr, num_iteration, lmd):
     best_72 = 100000000
     best_71 = 100000000
     best_715 = 100000000
-    best_loss = 1000
+    best_loss = 800
     for i in range(num_iteration):
-        if i%(100) == 0:
-            cur_mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
-            evaluation = None
+        # if i%(100) == 0:
+        #     cur_mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
+        #     evaluation = None
 
-            loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
-            if i%(num_iteration/100) == 0:
-                evaluation = evaluate_sgd( cur_mat, val_data)
-                print(i, "out of ", num_iteration, i/num_iteration)
-                print(loss)
-            if loss < best_loss:
-                if evaluation == None:
-                    evaluation = evaluate_sgd(cur_mat, val_data)
-                print("wow!!!!!", evaluation, loss)
-                sgd_save(cur_mat, "./models/sgd_test")
-                best_loss = loss
+        #     loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
+        #     if i%(num_iteration/100) == 0:
+        #         evaluation = evaluate_sgd( cur_mat, val_data)
+        #         print(i, "out of ", num_iteration, i/num_iteration)
+        #         print("loss:", loss)
+        #         print("eval:", evaluation)
+        #     if loss < best_loss:
+        #         if evaluation == None:
+        #             evaluation = evaluate_sgd(cur_mat, val_data)
+        #         print("wow!!!!!", evaluation, loss)
+        #         sgd_save(cur_mat, "./models/sgd_test")
+        #         best_loss = loss
 
             # if evaluation >= 0.72:
             #     loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
@@ -344,13 +345,14 @@ def als(train_data, k, lr, num_iteration, lmd):
             #         print("71!!!!!", evaluation, loss)
             #         sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_71")
             #         best_71 = loss
-        u,z,bu,bz = update_u_z_b(train_data, lr, u,z,bu,bz,mu, amt_user, amt_ques, lmd)
+        u,z,bu,bz = update_u_z_b(train_data, lr, u,z,bu,bz,mu, lmd)
     print(squared_error_loss(val_data,u,z,bu,bz,mu,lmd))
     mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
     return mat
+
 def conf_weight(x):
     if x < 0.2:
         return -1/(1+((x-0.7+1)/(1-x-1))**(-3))
@@ -441,9 +443,9 @@ def main():
     run_sgd = 1
     run_nn = 1
     nn_load = 1
-    shoud_sgd_load = 1
+    shoud_sgd_load = 0
     nn_model_path = "./models/nn"
-    sgd_model_path = "./models/sgd_test"
+    sgd_model_path = "./models/sgd_2"
     #np.save(sgd_model_path, sgd_matrix)   
     nn_model = None
     sgd_matrix = None
@@ -468,7 +470,8 @@ def main():
         k_value = 35
         # prev 2000000
         # prev 1250000
-        sgd_matrix = als(train_data,k_value,0.01, 100000, 0.065)
+        sgd_matrix = als(train_data,k_value,0.01, 1000000, 0.065)
+        sgd_save(sgd_matrix, sgd_model_path)
         cur_score = 0
         print("done training sgd")
     print(evaluate_sgd(sgd_matrix, val_data))
