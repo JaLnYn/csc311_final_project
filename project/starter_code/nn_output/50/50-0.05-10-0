@@ -1,0 +1,10 @@
+Epoch: 0 	Training Cost: 13337.439453	 Valid Acc: 0.6247530341518487
+Epoch: 1 	Training Cost: 12279.650391	 Valid Acc: 0.6395709850409258
+Epoch: 2 	Training Cost: 11565.219727	 Valid Acc: 0.6548123059554051
+Epoch: 3 	Training Cost: 10890.603516	 Valid Acc: 0.6639853231724527
+Epoch: 4 	Training Cost: 10277.895508	 Valid Acc: 0.6740050804403048
+Epoch: 5 	Training Cost: 9725.426758	 Valid Acc: 0.6758396838837144
+Epoch: 6 	Training Cost: 9210.059570	 Valid Acc: 0.6810612475303415
+Epoch: 7 	Training Cost: 8721.035156	 Valid Acc: 0.6840248377081569
+Epoch: 8 	Training Cost: 8253.292969	 Valid Acc: 0.683460344340954
+Epoch: 9 	Training Cost: 7806.520508	 Valid Acc: 0.6824724809483489
