@@ -319,14 +319,16 @@ def als(train_data, k, lr, num_iteration, lmd, bootstrapped, should_bootstrap):
     plot_y = []
     plot_x = []
     should_bootstrap = 0
-    best_72 = 100000000
-    best_71 = 100000000
-    best_715 = 100000000
     best_loss = 800
     for i in range(num_iteration):
-        #if i < 900000 and i % 1000 == 0:
-        #  plot_x.append(i)
-        #  plot_y.append(squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0])
+        if i >= 500000 and i % 1000 == 0:
+          cur_mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
+          loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
+          if i % 100000 == 0:
+            print( loss, i, i/num_iteration)
+          if(best_loss > loss):
+            best_loss = loss
+            sgd_save(cur_mat, "./models/sgd_k"+str(k))
         #elif i >= 900000 and i%(100) == 0:
         #    loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
         #    evaluation = None
@@ -336,12 +338,12 @@ def als(train_data, k, lr, num_iteration, lmd, bootstrapped, should_bootstrap):
         #        print("wow!!!!!", evaluation, loss, i)
         #        sgd_save(cur_mat, "./models/sgd_final")
         #        best_loss = loss
-        #    plot_x.append(i)
-        #    plot_y.append(loss)
+          plot_x.append(i)
+          plot_y.append(loss)
         u,z,bu,bz = update_u_z_b(train_data, lr, u,z,bu,bz,mu, lmd, bootstrapped, should_bootstrap)
     print(squared_error_loss(val_data,u,z,bu,bz,mu,lmd))
-    #plt.plot(plot_x,plot_y)
-    #plt.savefig("./figs/sgd")
+    plt.plot(plot_x,plot_y)
+    plt.savefig("../figs/sgd_k"+str(k))
     mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
     #####################################################################
     #                       END OF YOUR CODE                            #
@@ -440,10 +442,10 @@ def main():
     run_sgd = 1
     run_nn = 1
     nn_load = 1
-    shoud_sgd_load = 1
-    generate_priv = 1
+    shoud_sgd_load = 0
+    generate_priv = 0
     nn_model_path = "./models/nn"
-    sgd_model_path = "./models/sgd_top"
+    sgd_model_path = "./models/sgd_k30"
     #np.save(sgd_model_path, sgd_matrix)   
     nn_model = None
     sgd_matrix = None
@@ -464,12 +466,12 @@ def main():
     if shoud_sgd_load == 1:
         sgd_matrix = sgd_load(sgd_model_path)
     elif run_sgd == 1:
-        k_value = 35
+        k_value = 50
         # prev 2000000
         # prev 1250000
         #sgd_matrix = als(bootstrap(train_data, int(len(train_data["is_correct"])*3/4)),k_value,0.01, 1000000, 0.065)
         bootstrap_index = bootstrap(train_data, int(len(train_data["is_correct"])*3/4))
-        sgd_matrix = als(train_data,k_value,0.01, 1000000, 0.065, bootstrap_index, 0)
+        sgd_matrix = als(train_data,k_value,0.01, 3000000, 0.065, bootstrap_index, 0)
         sgd_save(sgd_matrix, sgd_model_path)
         cur_score = 0
         print("done training sgd")
