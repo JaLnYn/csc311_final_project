@@ -15,6 +15,20 @@ import numpy as np
 import torch
 import pickle
 
+def bootstrap(data,s):
+    vals = np.array(range(len(data['is_correct'])))
+    indexes = np.random.choice(vals, size=s)
+    return_this = {
+        'is_correct': [],
+        'question_id': [],
+        'user_id': []
+    }
+    for i in indexes:
+        return_this['is_correct'].append(data['is_correct'][i])
+        return_this['question_id'].append(data['question_id'][i])
+        return_this['user_id'].append(data['user_id'][i])
+    return return_this
+
 ####################
 # neural net stuff #
 ####################
@@ -273,16 +287,22 @@ def als(train_data, k, lr, num_iteration, lmd):
     tot_obs_data = 0
     total = num_u*num_q
     amt_of_data = len(train_data["user_id"])
+
+    bu = np.zeros((num_u,1))
+    bz = np.zeros((num_q,1))
+
     print("sparsity", amt_of_data/total)
     
     # amt_user = [0] * num_u
     # amt_ques = [0] * num_q
     print(num_u, num_q)
     for i in range(len(train_data["user_id"])):
-        # amt_user[train_data["user_id"][i]] +=1
-        # amt_ques[train_data["question_id"][i]] +=1
+        bu[train_data["user_id"][i]] +=1
+        bz[train_data["question_id"][i]] +=1
         tot_obs_data += 1
         mu += train_data["is_correct"][i]
+    bu = bu/tot_obs_data
+    bz = bz/tot_obs_data
     # for i in range(num_u):
     #     amt_user[i] = amt_user[i]/num_u
     # for i in range(num_u):
@@ -294,8 +314,6 @@ def als(train_data, k, lr, num_iteration, lmd):
                           size=(num_u, k))
     z = np.random.uniform(low=0, high=1 / np.sqrt(k),
                           size=(num_q, k))
-    bu = np.zeros((num_u,1))
-    bz = np.zeros((num_q,1))
     mu = mu/tot_obs_data
 
     #####################################################################
@@ -304,49 +322,32 @@ def als(train_data, k, lr, num_iteration, lmd):
     #####################################################################
     # itterations = [None] * int(num_iteration//250)
     # results = [None] * int(num_iteration//250)
+    plot_y = []
+    plot_x = []
 
     best_72 = 100000000
     best_71 = 100000000
     best_715 = 100000000
     best_loss = 800
     for i in range(num_iteration):
-        # if i%(100) == 0:
-        #     cur_mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
-        #     evaluation = None
-
-        #     loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
-        #     if i%(num_iteration/100) == 0:
-        #         evaluation = evaluate_sgd( cur_mat, val_data)
-        #         print(i, "out of ", num_iteration, i/num_iteration)
-        #         print("loss:", loss)
-        #         print("eval:", evaluation)
-        #     if loss < best_loss:
-        #         if evaluation == None:
-        #             evaluation = evaluate_sgd(cur_mat, val_data)
-        #         print("wow!!!!!", evaluation, loss)
-        #         sgd_save(cur_mat, "./models/sgd_test")
-        #         best_loss = loss
-
-            # if evaluation >= 0.72:
-            #     loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
-            #     if loss < best_72:
-            #         print("wow!!!!!", evaluation, loss)
-            #         sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_72")
-            #         best_72 = loss
-            # elif evaluation >= 0.715:
-            #     loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
-            #     if loss < best_715:
-            #         print("715!!!!!", evaluation, loss)
-            #         sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_715")
-            #         best_715 = loss
-            # elif evaluation >= 0.71:
-            #     loss= squared_error_loss(val_data,u,z,bu,bz,mu,lmd)
-            #     if loss < best_71:
-            #         print("71!!!!!", evaluation, loss)
-            #         sgd_save(np.dot(u,z.T), bu,bz, "./models/sgd_71")
-            #         best_71 = loss
+        #if i < 900000 and i % 1000 == 0:
+        #  plot_x.append(i)
+        #  plot_y.append(squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0])
+        #elif i >= 900000 and i%(100) == 0:
+        #    loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
+        #    evaluation = None
+        #    if loss < best_loss:
+        #        cur_mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
+        #        evaluation = evaluate_sgd(cur_mat, val_data)
+        #        print("wow!!!!!", evaluation, loss, i)
+        #        sgd_save(cur_mat, "./models/sgd_final")
+        #        best_loss = loss
+        #    plot_x.append(i)
+        #    plot_y.append(loss)
         u,z,bu,bz = update_u_z_b(train_data, lr, u,z,bu,bz,mu, lmd)
     print(squared_error_loss(val_data,u,z,bu,bz,mu,lmd))
+    #plt.plot(plot_x,plot_y)
+    #plt.savefig("./figs/sgd")
     mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
     #####################################################################
     #                       END OF YOUR CODE                            #
@@ -362,9 +363,9 @@ def conf_weight(x):
 
 def final_guess_func(nn_guess,sgd_guess):
     ## make functions go from -.5 to .5
-    nn_new = conf_weight(nn_guess)/8
-    sgd_new = sgd_guess - .5
-    return 0*nn_new + sgd_new + .5 
+    nn_new = (nn_guess-.5)/8
+    sgd_new = (sgd_guess - .5)*7/8
+    return nn_new + sgd_new + .5 
 
 def new_eval(nn_model, sgd_matrix, train_data, test_data):
     nn_model.eval()
@@ -378,15 +379,15 @@ def new_eval(nn_model, sgd_matrix, train_data, test_data):
         inputs = Variable(train_data[u]).unsqueeze(0)
         output = nn_model(inputs)
 
-        nn_guess = output[0][test_data["question_id"][i]].item()
         x = test_data['user_id'][i]
         y = test_data['question_id'][i]
+
+        nn_guess = conf_weight(output[0][test_data["question_id"][i]].item()/3 + sgd_matrix.item(x, y)/3 + sgd_matrix.item(x, y)/3)
         sgd_guess = sgd_matrix.item(x, y)
         total+=1
         #print(nn_guess, sgd_guess)
-        final_guess = final_guess_func(nn_guess,sgd_guess)
+        final_guess = final_guess_func(0*nn_guess,sgd_guess)
         #final_guess = sgd_guess
-
         """
         if (sgd_guess >= .5) == test_data["is_correct"][i] and (final_guess >= .5) != test_data["is_correct"][i]:
             print("uo")
@@ -440,12 +441,15 @@ def main():
     # (ALS) Try out at least 5 different k and select the best k        #
     # using the validation set.                                         #
     #####################################################################
+
+
     run_sgd = 1
     run_nn = 1
     nn_load = 1
     shoud_sgd_load = 0
+    generate_priv = 1
     nn_model_path = "./models/nn"
-    sgd_model_path = "./models/sgd_2"
+    sgd_model_path = "./models/sgd1"
     #np.save(sgd_model_path, sgd_matrix)   
     nn_model = None
     sgd_matrix = None
@@ -461,7 +465,6 @@ def main():
     irt_theta = None
     irt_beta = None
 
-    generate_priv = 0
     
 
     if shoud_sgd_load == 1:
@@ -470,7 +473,8 @@ def main():
         k_value = 35
         # prev 2000000
         # prev 1250000
-        sgd_matrix = als(train_data,k_value,0.01, 1000000, 0.065)
+        sgd_matrix = als(bootstrap(train_data, int(len(train_data["is_correct"])*3/4)),k_value,0.01, 1000000, 0.065)
+        #sgd_matrix = als(train_data,k_value,0.01, 1000000, 0.065)
         sgd_save(sgd_matrix, sgd_model_path)
         cur_score = 0
         print("done training sgd")
