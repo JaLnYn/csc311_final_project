@@ -9,6 +9,8 @@ import torch.utils.data
 import numpy as np
 import torch
 
+import matplotlib.pyplot as plt
+
 
 def load_data(base_path="../data"):
     """ Load the data in PyTorch Tensor.
@@ -100,6 +102,8 @@ def train(model, lr, lamb, train_data, zero_train_data, valid_data, num_epoch):
     optimizer = optim.SGD(model.parameters(), lr=lr)
     num_student = train_data.shape[0]
 
+    traincosts = []
+    validaccs = []
     for epoch in range(0, num_epoch):
         train_loss = 0.
 
@@ -125,6 +129,26 @@ def train(model, lr, lamb, train_data, zero_train_data, valid_data, num_epoch):
         valid_acc = evaluate(model, zero_train_data, valid_data)
         print("Epoch: {} \tTraining Cost: {:.6f}\t "
               "Valid Acc: {}".format(epoch, train_loss, valid_acc))
+
+        validaccs.append(valid_acc)
+        traincosts.append(train_loss)
+
+    fig, ax1 = plt.subplots()
+    color = 'tab:red'
+    ax1.set_xlabel("epoch")
+    ax1.set_ylabel("cost", color=color)
+    ax1.plot(list(range(1, num_epoch+1)), traincosts, color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx()
+    color = 'tab:blue'
+    ax2.set_ylabel("validation accuracy", color=color)
+    ax2.plot(list(range(1, num_epoch+1)), validaccs, color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    fig.tight_layout()
+    plt.show()
+    print(len(list(range(1, num_epoch+1))), len(validaccs), len(traincosts))
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -175,7 +199,7 @@ def main():
     num_epoch = 10
     lamb = 0
 
-    train(model, 0.05, 0.1, train_matrix, zero_train_matrix, valid_data, 10)
+    train(model, 0.005, 0.5, train_matrix, zero_train_matrix, valid_data, 100)
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################

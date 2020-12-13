@@ -89,6 +89,9 @@ def main():
     plt.plot(k_values,k_performance_item, label = 'item')
     plt.legend()
     plt.savefig('../figs/knn_item')
+
+    print("user", knn_impute_by_user(sparse_matrix, test_data, 11))
+    print("item", knn_impute_by_item(sparse_matrix, test_data, 21))
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
