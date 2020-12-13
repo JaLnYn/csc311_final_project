@@ -18,16 +18,7 @@ import pickle
 def bootstrap(data,s):
     vals = np.array(range(len(data['is_correct'])))
     indexes = np.random.choice(vals, size=s)
-    return_this = {
-        'is_correct': [],
-        'question_id': [],
-        'user_id': []
-    }
-    for i in indexes:
-        return_this['is_correct'].append(data['is_correct'][i])
-        return_this['question_id'].append(data['question_id'][i])
-        return_this['user_id'].append(data['user_id'][i])
-    return return_this
+    return indexes
 
 ####################
 # neural net stuff #
@@ -218,7 +209,7 @@ def squared_error_loss(data, u, z, bu, bz, mu, lmd):
         loss += lmd*(np.dot(u[j].T,u[j]) + np.dot(z[q].T,z[q]) + bu[j]**2 + bz[q]**2)
     return 1/2*loss
 
-def update_u_z_b(train_data, lr, u, z,bu , bz, mu, lmd):
+def update_u_z_b(train_data, lr, u, z,bu , bz, mu, lmd, bootstrapped):
     """ Return the updated U and Z after applying
     stochastic gradient descent for matrix completion.
 
@@ -234,8 +225,8 @@ def update_u_z_b(train_data, lr, u, z,bu , bz, mu, lmd):
     # Implement the function as described in the docstring.             #
     #####################################################################
     # Randomly select a pair (user_id, question_id).
-    i = \
-        np.random.choice(len(train_data["question_id"]), 1)[0]
+    j = np.random.choice(len(train_data["question_id"]), 1)[0]
+    i = bootstrapped[j]
 
     c = train_data["is_correct"][i]
     n = train_data["user_id"][i]
@@ -269,7 +260,7 @@ def sgd_load(path):
 
 
 
-def als(train_data, k, lr, num_iteration, lmd):
+def als(train_data, k, lr, num_iteration, lmd, bootstrapped):
     """ Performs ALS algorithm. Return reconstructed matrix.
 
     :param train_data: A dictionary {user_id: list, question_id: list,
@@ -344,7 +335,7 @@ def als(train_data, k, lr, num_iteration, lmd):
         #        best_loss = loss
         #    plot_x.append(i)
         #    plot_y.append(loss)
-        u,z,bu,bz = update_u_z_b(train_data, lr, u,z,bu,bz,mu, lmd)
+        u,z,bu,bz = update_u_z_b(train_data, lr, u,z,bu,bz,mu, lmd, bootstrapped)
     print(squared_error_loss(val_data,u,z,bu,bz,mu,lmd))
     #plt.plot(plot_x,plot_y)
     #plt.savefig("./figs/sgd")
@@ -473,8 +464,8 @@ def main():
         k_value = 35
         # prev 2000000
         # prev 1250000
-        sgd_matrix = als(bootstrap(train_data, int(len(train_data["is_correct"])*3/4)),k_value,0.01, 1000000, 0.065)
-        #sgd_matrix = als(train_data,k_value,0.01, 1000000, 0.065)
+        #sgd_matrix = als(bootstrap(train_data, int(len(train_data["is_correct"])*3/4)),k_value,0.01, 1000000, 0.065)
+        sgd_matrix = als(train_data,k_value,0.01, 1000000, 0.065, bootstrap_index)
         sgd_save(sgd_matrix, sgd_model_path)
         cur_score = 0
         print("done training sgd")
