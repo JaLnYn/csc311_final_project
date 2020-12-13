@@ -225,7 +225,7 @@ def update_u_z_b(train_data, lr, u, z,bu , bz, mu, lmd, bootstrapped):
     # Implement the function as described in the docstring.             #
     #####################################################################
     # Randomly select a pair (user_id, question_id).
-    j = np.random.choice(len(train_data["question_id"]), 1)[0]
+    j = np.random.choice(len(bootstrapped), 1)[0]
     i = bootstrapped[j]
 
     c = train_data["is_correct"][i]
@@ -465,6 +465,7 @@ def main():
         # prev 2000000
         # prev 1250000
         #sgd_matrix = als(bootstrap(train_data, int(len(train_data["is_correct"])*3/4)),k_value,0.01, 1000000, 0.065)
+        bootstrap_index = bootstrap(train_data, int(len(train_data["is_correct"])*3/4))
         sgd_matrix = als(train_data,k_value,0.01, 1000000, 0.065, bootstrap_index)
         sgd_save(sgd_matrix, sgd_model_path)
         cur_score = 0
