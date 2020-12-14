@@ -443,9 +443,9 @@ def main():
     run_nn = 1
     nn_load = 1
     shoud_sgd_load = 1
-    generate_priv = 0
+    generate_priv = 1
     nn_model_path = "./models/nn"
-    sgd_model_path = "./models/sgd_k60"
+    sgd_model_path = "./models/sgd_test"
     #np.save(sgd_model_path, sgd_matrix)   
     nn_model = None
     sgd_matrix = None
