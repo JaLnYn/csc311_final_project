@@ -445,7 +445,7 @@ def main():
     shoud_sgd_load = 1
     generate_priv = 1
     nn_model_path = "./models/nn"
-    sgd_model_path = "./models/sgd_test"
+    sgd_model_path = "./models/sgd_k70"
     #np.save(sgd_model_path, sgd_matrix)   
     nn_model = None
     sgd_matrix = None
@@ -466,7 +466,7 @@ def main():
     if shoud_sgd_load == 1:
         sgd_matrix = sgd_load(sgd_model_path)
     elif run_sgd == 1:
-        k_value = 60
+        k_value = 70
         # prev 2000000
         # prev 1250000
         #sgd_matrix = als(bootstrap(train_data, int(len(train_data["is_correct"])*3/4)),k_value,0.01, 1000000, 0.065)
