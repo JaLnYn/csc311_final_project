@@ -320,6 +320,7 @@ def als(train_data, k, lr, num_iteration, lmd, bootstrapped, should_bootstrap):
     plot_x = []
     should_bootstrap = 0
     best_loss = 800
+    best_matrix = None
     for i in range(num_iteration):
         if i >= 500000 and i % 1000 == 0:
           cur_mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
@@ -328,6 +329,7 @@ def als(train_data, k, lr, num_iteration, lmd, bootstrapped, should_bootstrap):
             print( loss, i, i/num_iteration)
           if(best_loss > loss):
             best_loss = loss
+            best_matrix = cur_mat
             sgd_save(cur_mat, "./models/sgd_k"+str(k))
         #elif i >= 900000 and i%(100) == 0:
         #    loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
@@ -348,7 +350,7 @@ def als(train_data, k, lr, num_iteration, lmd, bootstrapped, should_bootstrap):
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
-    return mat
+    return mat, best_matrix
 
 def conf_weight(x):
     if x < 0.2:
@@ -360,7 +362,7 @@ def conf_weight(x):
 def final_guess_func(nn_guess,sgd_guess):
     ## make functions go from -.5 to .5
     nn_new = (nn_guess-.5)/8
-    sgd_new = (sgd_guess - .5)*7/8
+    sgd_new = (sgd_guess - .5)
     return nn_new + sgd_new + .5 
 
 def new_eval(nn_model, sgd_matrix, train_data, test_data):
@@ -370,6 +372,14 @@ def new_eval(nn_model, sgd_matrix, train_data, test_data):
     nn_correct = 0
     sgd_correct = 0
     correct = 0
+ 
+    s2 = sgd_load("./models/sgd_k40")
+    s3 = sgd_load("./models/sgd_k50")
+    s4 = sgd_load("./models/sgd_k60")
+    s5 = sgd_load("./models/sgd_k70")
+    s6 = sgd_load("./models/sgd_k80")
+    s7 = sgd_load("./models/sgd_k90")
+
 
     for i, u in enumerate(test_data["user_id"]):
         inputs = Variable(train_data[u]).unsqueeze(0)
@@ -380,10 +390,11 @@ def new_eval(nn_model, sgd_matrix, train_data, test_data):
 
         nn_guess = conf_weight(output[0][test_data["question_id"][i]].item()/3 + sgd_matrix.item(x, y)/3 + sgd_matrix.item(x, y)/3)
         sgd_guess = sgd_matrix.item(x, y)
+        sgd_guess = (s2.item(x, y) + s3.item(x, y) + s4.item(x, y) + s5.item(x, y) + s6.item(x, y) + s7.item(x, y))/6
         total+=1
         #print(nn_guess, sgd_guess)
-        final_guess = final_guess_func(0*nn_guess,sgd_guess)
-        #final_guess = sgd_guess
+        #final_guess = final_guess_func(0*nn_guess,sgd_guess)
+        final_guess = sgd_guess
         """
         if (sgd_guess >= .5) == test_data["is_correct"][i] and (final_guess >= .5) != test_data["is_correct"][i]:
             print("uo")
@@ -406,6 +417,12 @@ def eval_private(nn_model, sgd_matrix,train_data, private_data):
     new_data = private_data.copy()
     #print(new_data["question_id"])
     #print(new_data["is_correct"])
+    s2 = sgd_load("./models/sgd_k40")
+    s3 = sgd_load("./models/sgd_k50")
+    s4 = sgd_load("./models/sgd_k60")
+    s5 = sgd_load("./models/sgd_k70")
+    s6 = sgd_load("./models/sgd_k80")
+    s7 = sgd_load("./models/sgd_k90")
     new_data["is_correct"] = [None] * len(private_data["user_id"])
     for i, u in enumerate(private_data["user_id"]):
         inputs = Variable(train_data[u]).unsqueeze(0)
@@ -416,10 +433,10 @@ def eval_private(nn_model, sgd_matrix,train_data, private_data):
         x = private_data['user_id'][i]
         y = private_data['question_id'][i]
         sgd_guess = sgd_matrix.item(x, y)
-        
+        sgd_guess = (s2.item(x, y) + s3.item(x, y) + s4.item(x, y) + s5.item(x, y) + s6.item(x, y) + s7.item(x, y))/6
         total+=1
         #print(nn_guess, sgd_guess)
-        final_guess = final_guess_func(nn_guess,sgd_guess)
+        final_guess = final_guess_func(0*nn_guess,sgd_guess)
         new_data['is_correct'][i] = final_guess >= .5
 
         
@@ -445,7 +462,7 @@ def main():
     shoud_sgd_load = 1
     generate_priv = 1
     nn_model_path = "./models/nn"
-    sgd_model_path = "./models/sgd_k70"
+    sgd_model_path = "./models/sgd_k90"
     #np.save(sgd_model_path, sgd_matrix)   
     nn_model = None
     sgd_matrix = None
@@ -466,13 +483,14 @@ def main():
     if shoud_sgd_load == 1:
         sgd_matrix = sgd_load(sgd_model_path)
     elif run_sgd == 1:
-        k_value = 70
+        k_value = 100
         # prev 2000000
         # prev 1250000
         #sgd_matrix = als(bootstrap(train_data, int(len(train_data["is_correct"])*3/4)),k_value,0.01, 1000000, 0.065)
         bootstrap_index = bootstrap(train_data, int(len(train_data["is_correct"])*3/4))
-        sgd_matrix = als(train_data,k_value,0.01, 3000000, 0.065, bootstrap_index, 0)
+        sgd_matrix,best_matrix = als(train_data,k_value,0.01, 4000000, 0.065, bootstrap_index, 0)
         sgd_save(sgd_matrix, sgd_model_path)
+        print("best matrix:", evaluate_sgd(best_matrix, val_data))
         cur_score = 0
         print("done training sgd")
     print(evaluate_sgd(sgd_matrix, val_data))
