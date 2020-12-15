@@ -4,7 +4,7 @@ from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
 import numpy as np
 
-
+val_data = load_valid_csv("../data")
 def svd_reconstruct(matrix, k):
     """ Given the matrix, perform singular value decomposition
     to reconstruct the matrix.
@@ -99,6 +99,32 @@ def update_u_z(train_data, lr, u, z):
     #####################################################################
     return u, z
 
+def sgd_save(matrix, path):
+    path_1 = path + "_mat"
+    np.save(path_1, matrix)   
+
+def sgd_load(path):
+    path_1 = path + "_mat"+ '.npy'
+
+    mat = np.load(path_1 )
+    return mat
+
+def squared_error_loss(data, u, z):
+    """ Return the squared-error-loss given the data.
+    :param data: A dictionary {user_id: list, question_id: list,
+    is_correct: list}
+    :param u: 2D matrix
+    :param z: 2D matrix
+    :return: float
+    """
+    loss = 0
+    dot = np.dot(u,z.T)
+    for n in range(len(data['user_id'])):
+        q = data['question_id'][n]
+        j = data['user_id'][n]
+        #print(bu[u],bz[q],mu,factorized_matrix.item(u, q))
+        loss += (data['is_correct'][n] - (dot.item(j,q)))**2
+    return 1/2*loss
 
 def als(train_data, k, lr, num_iteration):
     """ Performs ALS algorithm. Return reconstructed matrix.
@@ -110,7 +136,9 @@ def als(train_data, k, lr, num_iteration):
     :param num_iteration: int
     :return: 2D reconstructed Matrix.
     """
-
+    plot_y = []
+    plot_x = []
+    best_loss = 1000
     # Initialize u and z
     u = np.random.uniform(low=0, high=1 / np.sqrt(k),
                           size=(len(set(train_data["user_id"])), k))
@@ -124,22 +152,32 @@ def als(train_data, k, lr, num_iteration):
     # itterations = [None] * int(num_iteration//250)
     # results = [None] * int(num_iteration//250)
     for i in range(num_iteration):
-        print(i)
-        u,z = update_u_z(train_data, lr, u,z)
-        # print(results[i])
-        # if i%250 == 0:
-        #     itterations[i//250] = i
-        #     results[i//250] = squared_error_loss(train_data,u,z)
+    
+      if i >= 200000 and i % 1000 == 0:
+        cur_mat = np.dot(u, z.T)
+        loss = squared_error_loss(val_data,u,z)
+        if i % 100000 == 0:
+          print( loss, i, i/num_iteration)
+        if(best_loss > loss):
+          best_loss = loss
+          best_matrix = cur_mat
+          sgd_save(cur_mat, "./models/sgd_wo_k"+str(k))
+        plot_x.append(i)
+        plot_y.append(loss)
+      u,z = update_u_z(train_data, lr, u,z)
+      
     # plt.plot(itterations,results, label = 'square_err')
     # plt.legend()
     # plt.savefig('../figs/matrix_als_k'+str(k))
     # plt.cla()
+    plt.plot(plot_x,plot_y)
+    plt.savefig("../figs/sgd_wo_k"+str(k))
     print(squared_error_loss(train_data,u,z))
     mat = np.dot(u, z.T)
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
-    return mat
+    return mat, best_matrix
 
 
 def main():
@@ -169,7 +207,6 @@ def main():
             factorized_matrix = svd_reconstruct(train_matrix,k_values[i])
             cur_score = 0
             for n in range(len(val_data['user_id'])):
-
                 if (int(factorized_matrix.item(val_data['user_id'][n], val_data['question_id'][n]) > 0.5) == val_data['is_correct'][n]):
                     cur_score += 1
             k_performance[i] = cur_score/len(val_data['user_id'])
@@ -191,16 +228,16 @@ def main():
     # using the validation set.                                         #
     #####################################################################
     if run_als == 1:
-        k_values = [5,10,15,20,25]
-        k_values = [35]
+        k_values = [30,40,50,60,70]
+        k_values = [60,70,80,90,100]
         k_performance = [None] * 5
         k_star = 0
         #for i in range(len(k_values)):
         for i in range(len(k_values)):
-            factorized_matrix = als(train_data,k_values[i],0.01, 500000)
+            factorized_matrix,best_matrix = als(train_data,k_values[i],0.01, 1000000)
             cur_score = 0
             for n in range(len(val_data['user_id'])):
-                if (int(factorized_matrix.item(val_data['user_id'][n], val_data['question_id'][n]) > 0.5) == val_data['is_correct'][n]):
+                if (int(best_matrix.item(val_data['user_id'][n], val_data['question_id'][n]) > 0.5) == val_data['is_correct'][n]):
                     cur_score += 1
             k_performance[i] = cur_score/len(val_data['user_id'])
             print(k_performance[i])
