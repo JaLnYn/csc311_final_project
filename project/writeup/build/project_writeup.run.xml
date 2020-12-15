@@ -80,7 +80,7 @@
       <file>project_writeup.bcf</file>
     </requires>
     <requires type="editable">
-      <file>citations.bib</file>
+      <file>../citations.bib</file>
     </requires>
   </external>
 </requests>

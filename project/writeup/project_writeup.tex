@@ -1,16 +1,17 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
-\usepackage{fullpage,amsmath,amssymb,graphics, graphicx,enumitem,ulem,parskip,xcolor,physics,csquotes,caption}
+\usepackage{fullpage,amsmath,amssymb,graphics, graphicx,enumitem,ulem,parskip,xcolor,physics,csquotes,caption,longtable}
 
 \usepackage[
 backend=biber,
 style=alphabetic,
 sorting=ynt
 ]{biblatex}
-\addbibresource{citations.bib}
+\addbibresource{../citations.bib}
 
-\title{CSC311 Final Project}
+\title{Prediction Models for Student Performance on Diagnostic Questions\\
+\Large CSC311 Final Project}
 \author{Jia Lin Yuan, Steven Tran, Luyang Shang}
 \date{December 15, 2020}
 
@@ -18,6 +19,7 @@ sorting=ynt
 \newcommand{\tbf}[1]{\textbf{#1}}
 \newcommand{\mbf}[1]{\mathbf{#1}}
 \newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\STAB}[1]{\begin{tabular}{@{}c@{}}#1\end{tabular}}
 
 \begin{document}
 \maketitle
@@ -65,6 +67,8 @@ sorting=ynt
                     \end{tabular}
                 \end{minipage}
                 And the best value of $k$ for item-based collaborative filtering is $k^*=21$.
+
+                An assumption made here is that questions that were answered similarly are equal in difficulty. This might not always be case, keeping in mind that questions may span completely different subjects and there are only so many ways to pose a question. A question in a introductory chemistry quiz may be answered similarly to a graduate-level statistics question if both of them are multiple-choice.
             \item For the chosen values of $k$: $k^*_{\text{user}}=11$, $k^*_{\text{item}}=21$, we find that the test accuracy is 0.68416596105 and 0.68165274090, respectively. So the user-based collaborative filtering performs better.
             \item Here are two limitations of KNN for this task:
                 \begin{itemize}
@@ -175,7 +179,7 @@ and a test accuracy of 0.6850127011007621.
     \item We chose to improve upon our matrix factorization model because our testing in Part A yielded the most promising results with this model on the test data. 
 
         We amended the initial squared error loss; the new objective function we aimed to minimize is \cite{netflix}: \[
-            \mathcal{J}_{b\lambda} := \frac{1}{2}\sum_{(n, m)\in O}{\left(C_{nm}-\left(\mbf u_n^\top \mbf z_m+\mbf b_{u_n}+\mbf b_{z_m}+\mu\right)^2\right)+\lambda \left(\mbf u_n^\top\mbf u_n+\mbf z_m^\top\mbf z_m+\mbf b_{u_n}+\mbf b_{z_m}\right)}
+            \mathcal{J}_{b\lambda} := \frac{1}{2}\sum_{(n, m)\in O}{\left(C_{nm}-\left(\mbf u_n^\top \mbf z_m+\mbf b_{u_n}+\mbf b_{z_m}+\mu\right)\right)^2+\lambda \left(\mbf u_n^\top\mbf u_n+\mbf z_m^\top\mbf z_m+\mbf b_{u_n}+\mbf b_{z_m}\right)}
         \] where:
         \begin{itemize}
             \item $\mbf b_{u_n}$ is a bias term for user $n$. It is initialized to the ratio of number of answers by user $n$ to the total amount of observed data, i.e. \[
@@ -187,7 +191,7 @@ and a test accuracy of 0.6850127011007621.
             \item $\mu$ is a scalar initialized to the ratio of correct data to the total amount of observed data, i.e. \[
             \mu := \frac{\text{correct answers}}{\text{total observed data}}
             \] 
-            \item $\lambda$ is a penalty/regularization term
+            \item $\lambda$ is a penalty/regularization hyperparameter
         \end{itemize}
 
         We added weight regularization to the gradient descent method of optimizing the loss in our alternating least squares matrix factorization algorithm and bias/weight terms to every user and question. Intuitively, it is useful to weigh the users and questions that have more responses higher because they give more information, which is very useful when dealing with our issue of sparsity in the data. To start, given $k$, $\mbf u$ and $\mbf z$ were initialized by taking a uniform random sample of shape $(\text{\# user/question}, k)$ over $\left[0, \left\lfloor \frac{1}{\sqrt k}\right\rfloor\right]$. Then, we obtained the following update rules for $\operatornamewithlimits{argmin}_{\mbf u,\mbf z} \mathcal{J}_{b\lambda}$ via stochastic gradient descent:
@@ -228,57 +232,184 @@ and a test accuracy of 0.6850127011007621.
             \label{bagging}
         \end{center}
 
-    \item In this section, we compare the performance of our model using the same initialization of $\mbf u,\mbf z$, learning rate, and number of iterations with the baseline ALS matrix completion model. We will consider the training loss and prediction accuracy on the test data to see if our changes were useful.
+    \item In this section, we compare the performance of our model using the same initialization of $\mbf u,\mbf z$, learning rate, and number of iterations with the baseline ALS matrix completion model. We will consider the training loss and prediction accuracy on the test data to see if our changes were useful. 
+
+        Below, the left plots in Figures \ref{nobiasreg40}, \ref{nobiasreg50}, \ref{nobiasreg60}, \ref{nobiasreg70}, \ref{nobiasreg80}, \ref{nobiasreg90} show the validation loss as the original models without bias and regularization are trained for 1 million iterations. The right plots in Figures \ref{withbiasreg40}, \ref{withbiasreg50}, \ref{withbiasreg60}, \ref{withbiasreg70}, \ref{withbiasreg80}, \ref{withbiasreg90} show the validation loss as the new models with bias and regularization are trained for 4 million iterations. Note that the validation losses are on different scales due to the addition of various terms in the new model, but the general trend is the same. The models with bias and regularization have a very erratic trend. 
+
+        The corresponding validation and test accuracies of the original models are as follows:
+
+        \begin{center}
+            \begin{tabular}{c|c|c}
+                $k$ & validation accuracy & test accuracy \\\hline
+                40 & 0.7085802991814846 & 0.7087214225232854 \\
+                50 & 0.7056167090036692 & 0.7061812023708721 \\
+                60 & 0.707310189105278 & 0.707310189105278 \\
+                70 & 0.7050522156364663 & 0.7084391758396839 \\
+                80 & 0.707310189105278 & 0.7061812023708721 \\
+                90 & 0.7061812023708721 & 0.703076488851256 \\
+            \end{tabular}
+        \end{center}
+        The validation and test accuracies of our final, bootstrapped with bias and weight regularization were 0.7068868190798758 and 0.7058989556872707, respectively.
+
+        Thus, the performance did not improve by much but the model is more generalizable because we bagged the models. This more or less falls in line with our expectations; we don't expect bagging to increase the accuracy. 
+        
+
+        %723.0853628041474 200000 0.2
+        %701.8524423993288 300000 0.3
+        %689.867261692518 400000 0.4
+        %687.9347706896374 500000 0.5
+        %686.0736001353497 600000 0.6
+        %685.803993746787 700000 0.7
+        %683.3203583586919 800000 0.8
+        %682.7726872114937 900000 0.9
+        %4591.29994549652
+        %validation 0.7054755856618685
+        %test 0.7090036692068868
+        %722.931326530254 200000 0.2
+        %698.4321940059158 300000 0.3
+        %688.9629155491974 400000 0.4
+        %685.9274410406473 500000 0.5
+        %683.001712361564 600000 0.6
+        %682.7849629871617 700000 0.7
+        %682.1546202100534 800000 0.8
+        %681.9753838713801 900000 0.9
+        %4524.5573054474435
+        %validation 0.7085802991814846
+        %test 0.7087214225232854
+        %723.9602064846085 200000 0.2
+        %700.2439442446165 300000 0.3
+        %688.7425829765167 400000 0.4
+        %685.8680326367414 500000 0.5
+        %682.8818874671783 600000 0.6
+        %682.0543526570382 700000 0.7
+        %683.2722794983586 800000 0.8
+        %682.8368087209143 900000 0.9
+        %4501.322347696243
+        %validation 0.7056167090036692
+        %test 0.7061812023708721
+        %724.6613737701703 200000 0.2
+        %701.4008805446995 300000 0.3
+        %690.1703123750199 400000 0.4
+        %686.0837684751644 500000 0.5
+        %684.1097370354307 600000 0.6
+        %683.0951345165043 700000 0.7
+        %681.0175114328564 800000 0.8
+        %681.9032852657122 900000 0.9
+        %4500.400724891759
+        %validation 0.707310189105278
+        %test 0.707310189105278
+        %721.516649055351 200000 0.2
+        %699.5281297311434 300000 0.3
+        %689.4315273326175 400000 0.4
+        %685.7180784349583 500000 0.5
+        %682.3861392440592 600000 0.6
+        %682.0942839941125 700000 0.7
+        %681.5440144303245 800000 0.8
+        %682.1406789905474 900000 0.9
+        %4488.436588200986
+        %validation 0.7050522156364663
+        %test 0.7084391758396839
+        %723.3763617468431 200000 0.2
+        %699.6201952322318 300000 0.3
+        %689.8165425132408 400000 0.4
+        %686.1825155552731 500000 0.5
+        %683.1949544455069 600000 0.6
+        %681.5914503098212 700000 0.7
+        %679.9392617976873 800000 0.8
+        %681.6994286032927 900000 0.9
+        %4475.792925393139
+        %validation 0.707310189105278
+        %test 0.7061812023708721
+        %723.8622142246405 200000 0.2
+        %698.0150273562035 300000 0.3
+        %687.6178765346813 400000 0.4
+        %684.8084341198843 500000 0.5
+        %684.2818883501437 600000 0.6
+        %682.6377618264978 700000 0.7
+        %681.5118969031089 800000 0.8
+        %681.6140776557189 900000 0.9
+        %4459.632367593904
+        %validation 0.7061812023708721
+        %test 0.703076488851256
+
 
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_40.png}
-            \captionof{figure}{$k=40$}
+            \captionof{figure}{No bias \& regularization, $k=40$}
+            \label{nobiasreg40}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k40.png}
-            \captionof{figure}{$k=40$}
+            \captionof{figure}{With bias \& regularization, $k=40$}
+            \label{withbiasreg40}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_50.png}
-            \captionof{figure}{$k=50$}
+            \captionof{figure}{No bias \& regularization, $k=50$}
+            \label{nobiasreg50}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k50.png}
-            \captionof{figure}{$k=50$}
+            \captionof{figure}{With bias \& regularization, $k=50$}
+            \label{withbiasreg50}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_60.png}
-            \captionof{figure}{$k=60$}
+            \captionof{figure}{No bias \& regularization, $k=60$}
+            \label{nobiasreg60}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k60.png}
-            \captionof{figure}{$k=60$}
+            \captionof{figure}{With bias \& regularization, $k=60$}
+            \label{withbiasreg60}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_70.png}
-            \captionof{figure}{$k=70$}
+            \captionof{figure}{No bias \& regularization, $k=70$}
+            \label{nobiasreg70}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k70.png}
-            \captionof{figure}{$k=70$}
+            \captionof{figure}{With bias \& regularization, $k=70$}
+            \label{withbiasreg70}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_80.png}
-            \captionof{figure}{$k=80$}
+            \captionof{figure}{No bias \& regularization, $k=80$}
+            \label{nobiasreg80}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k80.png}
-            \captionof{figure}{$k=80$}
+            \captionof{figure}{With bias \& regularization, $k=80$}
+            \label{withbiasreg80}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_90.png}
-            \captionof{figure}{$k=90$}
+            \captionof{figure}{No bias \& regularization, $k=90$}
+            \label{nobiasreg90}
         \end{minipage}\hfill
         \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k90.png}
-            \captionof{figure}{$k=90$}
-        \end{minipage}\hfill
-    \item Our method may perform poorly if the weights are roughly equal, since there wouldn't be a gain in this instance. Another shortcoming is the lack of appropriate metadata that could help with weighing the features. We also don't have a lot of data to work with, and that's likely the reason why most models we have attain only around 70\% accuracy on the training, validation, and test sets. 
+            \captionof{figure}{With bias \& regularization, $k=90$}
+            \label{withbiasreg90}
+        \end{minipage}
+    \item Our method may perform poorly if the weights are roughly equal, since there wouldn't be a gain in this instance. The addition of weight regularization means that it makes many more iterations to train the models, and if the overall performance remains the same, then there is no point in incorporating the biases and weight regularization. Another shortcoming is the lack of appropriate metadata that could help with weighing the features. 
+
+        A major limitation of matrix factorization is over-specialization. The new prediction for a particular student is based on the student's past performance; when a new question appears, a student who's historically achieved high grades is predicted to be more likely to answer it correctly. This may not always be the case, because students with poor grades in the past may improve their study habits to perform well in the future. In addition, the data we used doesn't sufficient data to represent the student's ability in terms of other academic competencies.
+
+        In other words, we don't have enough data, and that's likely the reason why most models we have attain only around 70\% accuracy on the training, validation, and test sets. 
+
+        One way to improve the first limitation is that we could try to add some randomness to the model, changing the original squared error loss to be \[
+            \mathcal{J}_{b\lambda\varepsilon} := \frac{1}{2}\sum_{(n, m)\in O}{\left(C_{nm}-\left(\mbf u_n^\top \mbf z_m+\mbf b_{u_n}+\mbf b_{z_m}+\mu+\varepsilon\right)\right)^2+\lambda \left(\mbf u_n^\top\mbf u_n+\mbf z_m^\top\mbf z_m+\mbf b_{u_n}+\mbf b_{z_m}\right)}
+        \] 
+        where $\varepsilon\sim \mathcal N(0,\sigma^2)$ is a hyperparameter we select using the validation set in order to promote/simulate `improvements' in students' performance. With this definition, most students would have small improvements ($\varepsilon_i$ would be near the mean of 0), but some may increase/decrease in ability drastically ($\varepsilon_i$ would be at the tails of the normal distribution).
+
+        The second limitation could be addressed by using the question metadata, which contains information about the question subject. It might be useful to introduce an additional constant $s_{ij}$ which represents the student's ability for a certain subject. For example, let's assume student $i$ answers question $j$, where question $j$ is a geometry question. Then we could define this term to be a function of the number of geometry questions the student has answered correctly: \[
+            s_{ij}=f(\text{\# of geometry questions the student has answered correctly})
+        \]
+        It would be interesting to see if there are other datasets available for this problem and to see if there are any class-wide breakthroughs in models for this problem, just like there was for the Netflix recommendation system problem. 
 \end{enumerate}
+
+\nocite{*}
 \printbibliography[title={\section{References}}]
 \end{document}

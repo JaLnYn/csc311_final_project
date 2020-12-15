@@ -1,17 +1,18 @@
 [0] Config.pm:312> INFO - This is Biber 2.15
 [0] Config.pm:315> INFO - Logfile is 'build/project_writeup.blg'
-[71] biber:330> INFO - === Tue Dec 15, 2020, 14:38:45
-[85] Biber.pm:415> INFO - Reading 'build/project_writeup.bcf'
-[158] Biber.pm:952> INFO - Found 2 citekeys in bib section 0
-[172] Biber.pm:4334> INFO - Processing section 0
-[183] Biber.pm:4523> INFO - Looking for bibtex format file 'citations.bib' for section 0
-[184] bibtex.pm:1682> INFO - LaTeX decoding ...
-[189] bibtex.pm:1494> INFO - Found BibTeX data source 'citations.bib'
+[74] biber:330> INFO - === Tue Dec 15, 2020, 17:05:33
+[91] Biber.pm:415> INFO - Reading 'build/project_writeup.bcf'
+[165] Biber.pm:949> INFO - Using all citekeys in bib section 0
+[180] Biber.pm:4334> INFO - Processing section 0
+[190] Biber.pm:4523> INFO - Looking for bibtex format file '../citations.bib' for section 0
+[192] bibtex.pm:1682> INFO - LaTeX decoding ...
+[196] bibtex.pm:1494> INFO - Found BibTeX data source 'build/../citations.bib'
 [225] Utils.pm:395> WARN - month field 'October' in entry 'bagginglec' is not an integer - this will probably not sort properly.
-[236] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
-[236] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
-[236] Biber.pm:4162> INFO - Sorting list 'ynt/global//global/global' of type 'entry' with template 'ynt' and locale 'en-US'
-[236] Biber.pm:4168> INFO - No sort tailoring available for locale 'en-US'
-[242] bbl.pm:651> INFO - Writing 'build/project_writeup.bbl' with encoding 'UTF-8'
-[244] bbl.pm:754> INFO - Output to build/project_writeup.bbl
-[244] Biber.pm:128> INFO - WARNINGS: 1
+[238] Utils.pm:395> WARN - month field 'November' in entry 'pcaapplications' is not an integer - this will probably not sort properly.
+[251] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[251] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[251] Biber.pm:4162> INFO - Sorting list 'ynt/global//global/global' of type 'entry' with template 'ynt' and locale 'en-US'
+[251] Biber.pm:4168> INFO - No sort tailoring available for locale 'en-US'
+[258] bbl.pm:651> INFO - Writing 'build/project_writeup.bbl' with encoding 'UTF-8'
+[261] bbl.pm:754> INFO - Output to build/project_writeup.bbl
+[261] Biber.pm:128> INFO - WARNINGS: 2

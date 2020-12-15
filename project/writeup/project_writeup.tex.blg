@@ -1,0 +1,5 @@
+[0] Config.pm:312> INFO - This is Biber 2.15
+[0] Config.pm:315> INFO - Logfile is 'project_writeup.tex.blg'
+[90] biber:330> INFO - === Tue Dec 15, 2020, 16:08:06
+[159] Utils.pm:411> ERROR - Cannot find 'project_writeup.tex.bcf'!
+[159] Biber.pm:132> INFO - ERRORS: 1
