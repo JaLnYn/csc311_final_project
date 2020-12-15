@@ -529,7 +529,8 @@ if __name__ == "__main__":
     private_data = load_private_test_csv("../data")
 
     k_vals = [40, 50, 60, 70, 80, 90]
-    k = 40
+    k = 90
+    print(k)
     num_iteration = 4000000
     lr = 0.05
     lmd = 0.065
@@ -570,6 +571,7 @@ if __name__ == "__main__":
     plt.plot(range(500000, num_iteration, iter_step), old_losses, color="blue")
     print(evaluate_sgd(np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu, test_data))
     #plt.plot(range(500000, num_iteration, iter_step), new_losses, color="red")
-    plt.show()
+    #plt.show()
+    plt.savefig(f"{k}als")
 
 
