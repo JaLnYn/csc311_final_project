@@ -152,7 +152,7 @@ def als(train_data, k, lr, num_iteration):
     # itterations = [None] * int(num_iteration//250)
     # results = [None] * int(num_iteration//250)
     for i in range(num_iteration):
-    
+      #start
       if i >= 200000 and i % 1000 == 0:
         cur_mat = np.dot(u, z.T)
         loss = squared_error_loss(val_data,u,z)
@@ -172,6 +172,7 @@ def als(train_data, k, lr, num_iteration):
     # plt.cla()
     plt.plot(plot_x,plot_y)
     plt.savefig("../figs/sgd_wo_k"+str(k))
+    plt.cla()
     print(squared_error_loss(train_data,u,z))
     mat = np.dot(u, z.T)
     #####################################################################
