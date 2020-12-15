@@ -124,6 +124,7 @@ def als(train_data, k, lr, num_iteration):
     # itterations = [None] * int(num_iteration//250)
     # results = [None] * int(num_iteration//250)
     for i in range(num_iteration):
+        print(i)
         u,z = update_u_z(train_data, lr, u,z)
         # print(results[i])
         # if i%250 == 0:

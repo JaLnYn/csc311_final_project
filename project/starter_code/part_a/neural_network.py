@@ -136,7 +136,7 @@ def train(model, lr, lamb, train_data, zero_train_data, valid_data, num_epoch):
     fig, ax1 = plt.subplots()
     color = 'tab:red'
     ax1.set_xlabel("epoch")
-    ax1.set_ylabel("cost", color=color)
+    ax1.set_ylabel("training cost", color=color)
     ax1.plot(list(range(1, num_epoch+1)), traincosts, color=color)
     ax1.tick_params(axis='y', labelcolor=color)
 
@@ -148,7 +148,7 @@ def train(model, lr, lamb, train_data, zero_train_data, valid_data, num_epoch):
 
     fig.tight_layout()
     plt.show()
-    print(len(list(range(1, num_epoch+1))), len(validaccs), len(traincosts))
+    return model
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -199,7 +199,10 @@ def main():
     num_epoch = 10
     lamb = 0
 
-    train(model, 0.005, 0.5, train_matrix, zero_train_matrix, valid_data, 100)
+    print("test accuracy:", evaluate(
+        train(model, 0.01, 0, train_matrix, zero_train_matrix, valid_data, 100),
+        zero_train_matrix, test_data))
+
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################

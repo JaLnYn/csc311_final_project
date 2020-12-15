@@ -15,6 +15,8 @@ import numpy as np
 import torch
 import pickle
 
+import matrix_factorization as mfac
+
 def bootstrap(data,s):
     vals = np.array(range(len(data['is_correct'])))
     indexes = np.random.choice(vals, size=s)
@@ -520,4 +522,54 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    train_matrix = load_train_sparse("../data").toarray()
+    train_data = load_train_csv("../data")
+    test_data = load_public_test_csv("../data")
+    private_data = load_private_test_csv("../data")
+
+    k_vals = [40, 50, 60, 70, 80, 90]
+    k = 40
+    num_iteration = 4000000
+    lr = 0.05
+    lmd = 0.065
+    iter_step = 1000
+
+    tot_obs = 0
+    mu = 0
+    num_u = len(set(train_data["user_id"]))
+    num_q = len(set(train_data["question_id"]))
+    amt_of_data = len(train_data["user_id"])
+    bu = np.zeros((num_u, 1))
+    bz= np.zeros((num_q, 1))
+    for i in range(amt_of_data):
+        bu[train_data["user_id"][i]] += 1
+        bz[train_data["question_id"][i]] += 1
+        tot_obs += 1
+        mu += train_data["is_correct"][i]
+    bu /= tot_obs
+    bz /= tot_obs
+    u = np.random.uniform(low=0, high=1 / np.sqrt(k),
+                          size=(num_u, k))
+    z = np.random.uniform(low=0, high=1 / np.sqrt(k),
+                          size=(num_q, k))
+    u2 = u.copy()
+    z2 = z.copy()
+    mu = mu/tot_obs
+
+    old_losses = []
+    new_losses = []
+    for i in range(num_iteration):
+        if i % iter_step == 0:
+            print(i)
+        if i >= 500000 and i % iter_step == 0:
+            old_losses.append(mfac.squared_error_loss(train_data, u2, z2))
+            #new_losses.append(squared_error_loss(val_data, u, z, bu, bz, mu, lmd)[0])
+        #u, z, bu, bz = update_u_z_b(train_data, lr, u, z, bu, bz, mu, lmd, [], False)
+        u2, z2 = mfac.update_u_z(train_data, lr, u2, z2)
+    plt.plot(range(500000, num_iteration, iter_step), old_losses, color="blue")
+    print(evaluate_sgd(np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu, test_data))
+    #plt.plot(range(500000, num_iteration, iter_step), new_losses, color="red")
+    plt.show()
+
+

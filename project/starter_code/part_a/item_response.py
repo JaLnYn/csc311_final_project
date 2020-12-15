@@ -41,7 +41,7 @@ def neg_log_likelihood(data, theta, beta):
     return -log_lklihood
 
 
-def derivative_theta(data, theta, beta):
+def derivative_theta(data, theta, beta, nonz):
     """Compute derivative of MLE respect to theta
 
     :param data:
@@ -53,17 +53,16 @@ def derivative_theta(data, theta, beta):
     student_num = data.shape[0]
     question_num = data.shape[1]
 
-    for i in range(student_num):
-        derivative = 0
-        for j in range(question_num):
-            c_ij = data[i, j]
-            if c_ij == 0 or c_ij == 1:
-                derivative += c_ij - 1 / (1 + 1/np.exp(theta[i] - beta[j]))
-        theta_derivative[i] = derivative
+    if nonz is None:
+        dense = data.toarray()
+        nonz = np.nan_to_num(np.where(dense==0., 1., dense)).nonzero()
+
+    for i, j in zip(*nonz):
+        theta_derivative[i] += data[i, j] - 1/(1+1/np.exp(theta[i]-beta[j]))
     return theta_derivative
 
 
-def derivative_beta(data, theta, beta):
+def derivative_beta(data, theta, beta, nonz):
     """Compute derivative of MLE respect to beta
 
         :param data:
@@ -75,17 +74,17 @@ def derivative_beta(data, theta, beta):
     student_num = data.shape[0]
     question_num = data.shape[1]
 
-    for j in range(question_num):
-        derivative = 0
-        for i in range(student_num):
-            c_ij = data[i, j]
-            if c_ij == 0 or c_ij == 1:
-                derivative += (- c_ij) + 1 / (1 + 1/np.exp(theta[i] - beta[j]))
-        beta_derivative[j] = derivative
+    if nonz is None:
+        dense = data.toarray()
+        nonz = np.nan_to_num(np.where(dense==0., 1., dense)).nonzero()
+
+    beta_derivative = np.zeros((len(beta), 1))
+    for i, j in zip(*nonz):
+        beta_derivative[j] += -data[i, j] + 1/(1+1/np.exp(theta[i]-beta[j]))
     return beta_derivative
 
 
-def update_theta_beta(data, lr, theta, beta):
+def update_theta_beta(data, lr, theta, beta, nonz=None):
     """ Update theta and beta using gradient descent.
 
     You are using alternating gradient descent. Your update should look:
@@ -106,9 +105,9 @@ def update_theta_beta(data, lr, theta, beta):
     # TODO:                                                             #
     # Implement the function as described in the docstring.             #
     #####################################################################
-    theta_derivative = derivative_theta(data, theta, beta)
+    theta_derivative = derivative_theta(data, theta, beta, nonz)
     theta += lr * theta_derivative
-    beta_derivative = derivative_beta(data, theta, beta)
+    beta_derivative = derivative_beta(data, theta, beta, nonz)
     beta += lr * beta_derivative
     #####################################################################
     #                       END OF YOUR CODE                            #
@@ -140,6 +139,9 @@ def irt(train_data, train_sparse, val_data, lr, iterations):
     train_loglikes = []
     valid_loglikes = []
 
+    dense = train_sparse.toarray()
+    nonz = np.nan_to_num(np.where(dense==0., 1., dense)).nonzero()
+
     for i in range(iterations):
         train_neg_lld = neg_log_likelihood(train_data, theta=theta, beta=beta)
         train_loglikes.append(train_neg_lld)
@@ -150,7 +152,7 @@ def irt(train_data, train_sparse, val_data, lr, iterations):
         score = evaluate(data=val_data, theta=theta, beta=beta)
         val_acc_lst.append(score)
         # print("NLLK: {} \t Score: {}".format(train_neg_lld, score))
-        theta, beta = update_theta_beta(train_sparse, lr, theta, beta)
+        theta, beta = update_theta_beta(train_sparse, lr, theta, beta, nonz)
 
     # TODO: You may change the return values to achieve what you want.
 
@@ -188,20 +190,24 @@ def main():
     # Tune learning rate and number of iterations. With the implemented #
     # code, report the validation and test accuracy.                    #
     #####################################################################
-    lr = 0.016
-    theta, beta, train_log, valid_log = irt(train_data, sparse_matrix,
-                                            val_data, lr, 10)
-    # plot log-likelihood as training process
-    num_iter = [i for i in range(10)]
-    plt.plot(num_iter, valid_log, linestyle='--',
-             color='b', label="validation")
-    plt.plot(num_iter, train_log, linestyle='--',
-             color='r', label="train")
-    plt.title("Change for log likelihoods")
-    plt.xlabel('Iterations', fontsize=14)
-    plt.ylabel('loglike', fontsize=14)
-    plt.legend(loc=1)
-    plt.show()
+    #lr = 0.016
+    #theta, beta, train_log, valid_log = irt(train_data, sparse_matrix,
+    #                                        val_data, lr, 10)
+    ## plot log-likelihood as training process
+    #num_iter = [i for i in range(10)]
+    #plt.plot(num_iter, valid_log, linestyle='--',
+    #         color='b', label="validation")
+    #plt.plot(num_iter, train_log, linestyle='--',
+    #         color='r', label="train")
+    #plt.title("Change for log likelihoods")
+    #plt.xlabel('Iterations', fontsize=14)
+    #plt.ylabel('loglike', fontsize=14)
+    #plt.legend(loc=1)
+    ##plt.show()
+    #np.save("../irt_output/theta", theta)
+    #np.save("../irt_output/beta", beta)
+    theta = np.load("../irt_output/theta.npy")
+    beta = np.load("../irt_output/beta.npy")
 
     #####################################################################
     #                       END OF YOUR CODE                            #
@@ -216,6 +222,17 @@ def main():
     test_accuracy = evaluate(test_data, theta, beta)
     print("Final validation accuracy: {}\n".format(valid_accuracy))
     print("Final test accuracy: {}\n".format(test_accuracy))
+
+    colors = ["blue", "red", "orange", "green", "purple"]
+    for i, j in enumerate([4, 8, 16, 32, 64]):
+        probs = []
+        for th in theta:
+            probs.append(1/(1+1/np.exp(th-beta[j])))
+        plt.plot(theta, probs, color=colors[i], label=f"question ${j}$")
+    plt.xlabel(r"$\theta_i=i$-th student's ability")
+    plt.ylabel(r"$p(c_{ij}=1|\theta_i,\beta_j)$")
+    plt.legend()
+    plt.show()
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
