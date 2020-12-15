@@ -219,14 +219,16 @@ def main():
         for i in range(num_theta):
             probs[j].append(sigmoid(theta[i] - beta_j)[0])
 
-    sns.lineplot(x=theta, y=probs[1], label="question id 1")
-    sns.lineplot(x=theta, y=probs[2], label="question id 2")
-    sns.lineplot(x=theta, y=probs[3], label="question id 3")
-    sns.lineplot(x=theta, y=probs[4], label="question id 4")
-    sns.lineplot(x=theta, y=probs[5], label="question id 5")
+    flat_theta = theta.flatten()
+    sns.lineplot(x=flat_theta, y=probs[1], label="question id 1")
+    sns.lineplot(x=flat_theta, y=probs[2], label="question id 2")
+    sns.lineplot(x=flat_theta, y=probs[3], label="question id 3")
+    sns.lineplot(x=flat_theta, y=probs[4], label="question id 4")
+    sns.lineplot(x=flat_theta, y=probs[5], label="question id 5")
     plt.title("Change for probability")
-    plt.xlabel('theta', fontsize=14)
-    plt.ylabel('probability', fontsize=14)
+    plt.xlabel(r"$\theta_i=i$-th student's ability")
+    plt.ylabel(r"$p(c_{ij}=1|\theta_i,\beta_j)$")
+    plt.savefig("../figs/irt.png")
     plt.show()
 
     #####################################################################
@@ -249,8 +251,6 @@ def main():
         for th in theta:
             probs.append(1/(1+1/np.exp(th-beta[j])))
         plt.plot(theta, probs, color=colors[i], label=f"question ${j}$")
-    plt.xlabel(r"$\theta_i=i$-th student's ability")
-    plt.ylabel(r"$p(c_{ij}=1|\theta_i,\beta_j)$")
     plt.legend()
     plt.show()
     #####################################################################

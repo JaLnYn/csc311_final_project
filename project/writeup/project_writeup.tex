@@ -76,7 +76,7 @@ sorting=ynt
         
     \item In this approach, we use Item Response Theory to predict students' correctness to diagnostic questions.
         \begin{enumerate}[label=(\alph*)]
-            \item
+            \item Here, we derive an expression for the log-likelihood corresponding to this model and its derivative with respect to the user-ability and question-difficulty parameters. 
                 \begin{align*}
                     \mc L(\mbf C|\bs\theta,\bs\beta) &= \sum_{i=1}^{N}{\sum_{j=1}^{J}{P(c_{ij}=1|\theta_i,\beta_j)^{c_{ij}}(1-P(c_{ij}=0|\theta_i,\beta_j))^{1-c_{ij}}}} \\
                     \ell(\mbf C|\bs\theta, \bs\beta) &= \sum_{i=1}^{N}{\sum_{j=1}^{J}{c_{ij}\log(P(c_{ij}=1|\theta_i,\beta_j))+(1-c_{ij})\log(1-P(c_{ij}=0|\theta_i,\beta_j))}} \\
@@ -84,7 +84,7 @@ sorting=ynt
                                                      &= \sum_{i=1}^{N}{\sum_{j=1}^{J}{\left(c_{ij}(\theta_i-\beta_j)-\log(1+\exp(\theta_i-\beta_j))\right)}} \\
                                                      &= \sum_{i\colon (i, j)\in C}{\sum_{j\colon (i, j)\in C}{\left(c_{ij}(\theta_i-\beta_j)-\log(1+\exp(\theta_i-\beta_j))\right)}} \\
                     \pdv{\ell}{\theta_i} &= \sum_{j\colon (i, j)\in C}{c_{ij}}-\sum_{j\colon (i, j)\in C}{\frac{\exp(\theta_i-\beta_j)}{1+\exp(\theta_i-\beta j)}} \\
-                    \pdv{\ell}{\beta_j} &= \sum_{i\colon (i, j)\in C}{c_{ij}} + \sum_{i\colon (i, j)\in C}{\frac{\exp(\theta_i-\beta_j)}{1+\exp(\theta_i-\beta j)}}
+                    \pdv{\ell}{\beta_j} &= \sum_{i\colon (i, j)\in C}{-c_{ij}} + \sum_{i\colon (i, j)\in C}{\frac{\exp(\theta_i-\beta_j)}{1+\exp(\theta_i-\beta j)}}
                 \end{align*}
             \item We found the following hyperparameters to be the best:
                 \begin{itemize}
@@ -100,9 +100,14 @@ sorting=ynt
                     \item Final validation accuracy: 0.7064634490544736
                     \item Final test accuracy: 0.7039232289020604
                 \end{itemize}
-            \item The plot is shown below. \textcolor{red}{explain what it represents}
+            \item The plot is shown below. It shows the probability of correct response $P(c_{ij}|\theta_i,\beta_j)$ as a function of $\theta_i$, which represents the $i$-th student's ability. For each fixed question, the relationship between $P(c_{ij}|\theta_i,\beta_j)$ and $\theta$ follows the sigmoid function \[
+                    P(c_{ij}|\theta_i,\beta_j)=\frac{\exp(\theta_i-\beta_j)}{1+\exp(\theta_i-\beta_j)}
+            \] 
+            There is a positive relationship between $P(c_{ij}|\theta_i,\beta_j)$ and $\theta$. It makes sense that a student having greater ability would be more likely to answer a question correctly if we hold the question difficulties constant.
+
+            Also, notice that different questions have different correctness probabilities if we hold the students' abilities constant. For instance, the curve for the question with ID 3 is above the curve for the question with ID 4, indicating that the former is more likely to be correctly answered by students with equal ability compared to the latter question, which is comparatively harder.
                 \begin{center}
-                    \includegraphics[width=0.6\linewidth]{../starter_code/irt_output/partd.png}
+                    \includegraphics[width=0.6\linewidth]{../starter_code/figs/irt.png}
                 \end{center}
         \end{enumerate}
         
@@ -193,34 +198,83 @@ and a test accuracy of 0.6850127011007621.
             \mbf b_{z_m}' &\gets \mbf b_{z_m}-\alpha \left(-(c_{nm}-\mu-\mbf b_{u_n}-\mbf b_{z_m}-\mbf u^\top\mbf z)+\lambda\mbf b_{z_m}\right)
         \end{align*}
         Furthermore, we took this training approach for six models, each trained differently with corresponding $k$ values of $[40, 50, 60, 70, 80, 90]$. We did this in an attempt to reduce overfitting to the training data, reducing variance, and also increasing the bias. Their predictions were averaged and then compared to the usual threshold of 0.5, classifying the $(\text{user}, \text{question})$ pair as correct if it was greater. Another objective of this approach was to hopefully increase test performance by weighing more important points higher.
-    \item 
+    \item In this section, we illustrate several ideas about our model. 
+
+        \begin{minipage}[c]{0.35\linewidth}
+            \includegraphics[width=\linewidth]{./images/train_sparse_bias.pdf}
+            \captionof{figure}{Sparse train matrix showing how the user and question biases are initialized}
+            \label{sparsebias}
+        \end{minipage}\hfill
+        \begin{minipage}[c]{0.6\linewidth}
+            \begin{minipage}{0.4\linewidth}
+                \includegraphics[width=\linewidth]{./images/bias_user.pdf}
+            \end{minipage}\hfill
+            \begin{minipage}{0.4\linewidth}
+                \includegraphics[width=\linewidth]{./images/bias_question.pdf}
+            \end{minipage}
+            \captionof{figure}{Parameters $\mbf u,\mbf z$ we aim to optimize for, and biases $\mbf b_u, \mbf b_z$}
+            \label{biases}
+        \end{minipage}
+
+        Firstly, the model's goal is to take the training matrix in Figure~\ref{sparsebias} and complete it so that the unobserved entries, marked `?', are predicted. The $N\times J$ matrix can split into two matrices $\mbf u$ (size $N\times k$) and $\mbf z$ (size $J\times k$), where $k$ is the latent dimension hyperparameters, as shown in Figure~\ref{biases} for $k=1$. The reconstruction works by multiplying $\mbf u,\mbf z$:
+        \[
+            \underbrace{\mbf u}_{N\times k}\underbrace{\mbf z^\top}_{k\times J}=\underbrace{\text{reconstructed matrix}}_{N\times J}
+        \] 
+        For bootstrapping the training data, we sampled the indices of the training data with replacement so that duplicates would be included, meaning some points could be represented more than once. This is shown in Figure~\ref{bagging}.
+
+        \begin{center}
+            \includegraphics[width=\linewidth]{./images/bagging.pdf}
+            \captionof{figure}{Illustration of bagging approach for the various matrix factorization models, taking the average of the predictions for the base models as the overall prediction~\cite{bagginglec}.}
+            \label{bagging}
+        \end{center}
+
     \item In this section, we compare the performance of our model using the same initialization of $\mbf u,\mbf z$, learning rate, and number of iterations with the baseline ALS matrix completion model. We will consider the training loss and prediction accuracy on the test data to see if our changes were useful.
 
-        \begin{minipage}{0.4\linewidth}
-            \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k30.png}
-            \captionof{figure}{$k=30$}
+        \begin{minipage}{0.49\linewidth}
+            \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_40.png}
+            \captionof{figure}{$k=40$}
         \end{minipage}\hfill
-        \begin{minipage}{0.4\linewidth}
+        \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k40.png}
             \captionof{figure}{$k=40$}
         \end{minipage}\hfill
-        \begin{minipage}{0.4\linewidth}
+        \begin{minipage}{0.49\linewidth}
+            \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_50.png}
+            \captionof{figure}{$k=50$}
+        \end{minipage}\hfill
+        \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k50.png}
             \captionof{figure}{$k=50$}
         \end{minipage}\hfill
-        \begin{minipage}{0.4\linewidth}
+        \begin{minipage}{0.49\linewidth}
+            \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_60.png}
+            \captionof{figure}{$k=60$}
+        \end{minipage}\hfill
+        \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k60.png}
             \captionof{figure}{$k=60$}
         \end{minipage}\hfill
-        \begin{minipage}{0.4\linewidth}
+        \begin{minipage}{0.49\linewidth}
+            \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_70.png}
+            \captionof{figure}{$k=70$}
+        \end{minipage}\hfill
+        \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k70.png}
             \captionof{figure}{$k=70$}
         \end{minipage}\hfill
-        \begin{minipage}{0.4\linewidth}
+        \begin{minipage}{0.49\linewidth}
+            \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_80.png}
+            \captionof{figure}{$k=80$}
+        \end{minipage}\hfill
+        \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k80.png}
             \captionof{figure}{$k=80$}
         \end{minipage}\hfill
-        \begin{minipage}{0.4\linewidth}
+        \begin{minipage}{0.49\linewidth}
+            \includegraphics[width=\linewidth]{../starter_code/figs/sgd_wo_k_90.png}
+            \captionof{figure}{$k=90$}
+        \end{minipage}\hfill
+        \begin{minipage}{0.49\linewidth}
             \includegraphics[width=\linewidth]{../starter_code/figs/sgd_k90.png}
             \captionof{figure}{$k=90$}
         \end{minipage}\hfill

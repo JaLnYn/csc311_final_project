@@ -75,6 +75,42 @@
       \endverb
       \keyw{Computational intelligence,Matrix factorization,Netflix Prize}
     \endentry
+    \entry{bagginglec}{misc}{}
+      \name{author}{3}{}{%
+        {{hash=7bfa5101481b4cfcddf46d2915b6ad49}{%
+           family={Grosse},
+           familyi={G\bibinitperiod},
+           given={Roger},
+           giveni={R\bibinitperiod}}}%
+        {{hash=bacf5653899942629817959462eec6f2}{%
+           family={Bae},
+           familyi={B\bibinitperiod},
+           given={Juhan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=1f28c46a15e21576f57642d5dd0d8371}{%
+           family={Maddison},
+           familyi={M\bibinitperiod},
+           given={Christopher},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {University of Toronto}%
+      }
+      \strng{namehash}{42cca9b2b7b548f073b834383d0bb02d}
+      \strng{fullhash}{42cca9b2b7b548f073b834383d0bb02d}
+      \strng{bibnamehash}{42cca9b2b7b548f073b834383d0bb02d}
+      \strng{authorbibnamehash}{42cca9b2b7b548f073b834383d0bb02d}
+      \strng{authornamehash}{42cca9b2b7b548f073b834383d0bb02d}
+      \strng{authorfullhash}{42cca9b2b7b548f073b834383d0bb02d}
+      \field{labelalpha}{GBM20}
+      \field{sortinit}{2}
+      \field{sortinithash}{ed39bb39cf854d5250e95b1c1f94f4ed}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{month}{10}
+      \field{title}{CSC311 Lecture 6}
+      \field{year}{2020}
+    \endentry
   \enddatalist
 \endrefsection
 \endinput
