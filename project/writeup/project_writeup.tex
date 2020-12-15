@@ -125,7 +125,12 @@ sorting=ynt
                 %\end{enumerate}
             \item Neural Networks
                 \begin{enumerate}[label=(\alph*)]
-                    \item \textcolor{red}{Not sure what this is asking.}
+                    \item Here are some differences between the neural network autoencoder and ALS:
+                        \begin{enumerate}
+                            \item The parameterizations of the problems are different. In the neural network, we're training the weights of the activation functions $g, h$ to minimize the squared error loss which is computed by passing the input through the two-layer autoencoder. In ALS, we're training the vectors $\mbf u,\mbf z$, reconstructing the matrix, and then computing the squared error loss by the reconstruction error.
+                            \item We can use backpropagation in neural networks, but we can't do the same for the ALS optimization problem.
+                            \item In ALS, we are only iterating over the observed values. In neural networks, we don't care about what's observed and what's not; we use only the fact that the best possible $K$-dimension linear subspace is the PCA substance, achieved by setting $\mbf W_1=\mbf U^\top,\mbf W_2=\mbf U$ \cite{pcaapplications}.
+                        \end{enumerate}
                     \item See \texttt{neural\_network.py}
                     \item We trained models using a variety of hyperparameters and found that a good combination was $k$ (latent dim.) = 10, learning rate = 0.01, epochs = 100. This achieved a training cost of 8376.565430	 and validation accuracy of 0.6891052780129834.
                     %\begin{center}
@@ -393,7 +398,7 @@ and a test accuracy of 0.6850127011007621.
             \captionof{figure}{With bias \& regularization, $k=90$}
             \label{withbiasreg90}
         \end{minipage}
-    \item Our method may perform poorly if the weights are roughly equal, since there wouldn't be a gain in this instance. The addition of weight regularization means that it makes many more iterations to train the models, and if the overall performance remains the same, then there is no point in incorporating the biases and weight regularization. Another shortcoming is the lack of appropriate metadata that could help with weighing the features. 
+    \item Our method may not perform optimally if the weights are roughly equal, since there wouldn't be a gain in this instance. It wouldn't perform badly -- it would just take awhile to train. The addition of weight regularization means that it makes many more iterations to train the models, and if the overall performance remains the same, then there is no point in incorporating the biases and weight regularization. Another shortcoming is the lack of appropriate metadata that could help with weighing the features. 
 
         A major limitation of matrix factorization is over-specialization. The new prediction for a particular student is based on the student's past performance; when a new question appears, a student who's historically achieved high grades is predicted to be more likely to answer it correctly. This may not always be the case, because students with poor grades in the past may improve their study habits to perform well in the future. In addition, the data we used doesn't sufficient data to represent the student's ability in terms of other academic competencies.
 

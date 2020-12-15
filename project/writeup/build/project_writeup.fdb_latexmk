@@ -1,11 +1,11 @@
 # Fdb version 3
-["biber build/project_writeup"] 1608069932 "build/project_writeup.bcf" "build/project_writeup.bbl" "build/project_writeup" 1608069937
+["biber build/project_writeup"] 1608075295 "build/project_writeup.bcf" "build/project_writeup.bbl" "build/project_writeup" 1608075297
   "build/../citations.bib" 1608069905 1321 1f4cf6e4640b0f047c59bfec97f2f4dc ""
-  "build/project_writeup.bcf" 1608069937 107210 925ce6ecc4357ee2c6d4ebfc5372dbdb "pdflatex"
+  "build/project_writeup.bcf" 1608075297 107267 5504782fa31ddadb9e05b4ae9d2ded9b "pdflatex"
   (generated)
-  "build/project_writeup.bbl"
   "build/project_writeup.blg"
-["pdflatex"] 1608069935 "project_writeup.tex" "build/project_writeup.pdf" "project_writeup" 1608069937
+  "build/project_writeup.bbl"
+["pdflatex"] 1608075295 "project_writeup.tex" "build/project_writeup.pdf" "project_writeup" 1608075297
   "../starter_code/figs/irt.png" 1608067802 58687 4a84dba6d57cb2593d2ec80f756100f9 ""
   "../starter_code/figs/knn_item.png" 1607888227 16806 7e3078b31dc86e6282be92a1cf0811eb ""
   "../starter_code/figs/knn_user.png" 1607888150 21028 6d9c526e0e0f6d9591605ab0e1fc71ac ""
@@ -145,17 +145,17 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1607249373 33301 a3134070eacafb10b1f371612ce2650d ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1607874473 4885835 225b430335ea75120e4d14f95280dfb9 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1607874461 2635865 f4b0b7d4510786a06900210d510d75ac ""
-  "build/project_writeup.aux" 1608069937 5062 76ebd2c20b749c8f545ddd9b97b74297 "pdflatex"
-  "build/project_writeup.bbl" 1608069933 5639 27930688df8823ace6a71f42bcc4148b "biber build/project_writeup"
-  "build/project_writeup.run.xml" 1608069937 2428 25c101d8f00ac09c2a2b29458418cec2 "pdflatex"
+  "build/project_writeup.aux" 1608075297 5130 441cbc0f7fc6d8f40867042ef2e68303 "pdflatex"
+  "build/project_writeup.bbl" 1608075295 5619 767fd3a2977daa137cd9dbe89f142f2b "biber build/project_writeup"
+  "build/project_writeup.run.xml" 1608075297 2428 25c101d8f00ac09c2a2b29458418cec2 "pdflatex"
   "images/bagging.pdf" 1608059628 434225 df79a0f52c1df4c8e6a60ff041b87897 ""
   "images/bias_question.pdf" 1608058997 13705 72a078d641202b5f1c75800ef3ece217 ""
   "images/bias_user.pdf" 1608059010 13540 ef49f9cdcc043ba53cd0e6595c138d5b ""
   "images/train_sparse_bias.pdf" 1608058709 76755 91f2630de7df6c359cc60d2c7a853909 ""
-  "project_writeup.tex" 1608069930 28780 66ee0e4fd0289e62b1d5e43e95f83ec1 ""
+  "project_writeup.tex" 1608075294 29873 b57c472f759fed148eda0967e2ecc4c3 ""
   (generated)
-  "build/project_writeup.pdf"
-  "build/project_writeup.log"
+  "build/project_writeup.aux"
   "build/project_writeup.bcf"
   "build/project_writeup.run.xml"
-  "build/project_writeup.aux"
+  "build/project_writeup.pdf"
+  "build/project_writeup.log"
