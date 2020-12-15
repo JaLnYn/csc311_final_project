@@ -9,6 +9,8 @@ import torch.utils.data
 import numpy as np
 import torch
 
+import matplotlib.pyplot as plt
+
 
 def load_data(base_path="../data"):
     """ Load the data in PyTorch Tensor.
@@ -70,7 +72,8 @@ class AutoEncoder(nn.Module):
         # Implement the function as described in the docstring.             #
         # Use sigmoid activations for f and g.                              #
         #####################################################################
-        out = inputs
+        sig = nn.Sigmoid()
+        out = sig(self.h(sig(self.g(inputs))))
         #####################################################################
         #                       END OF YOUR CODE                            #
         #####################################################################
@@ -99,6 +102,8 @@ def train(model, lr, lamb, train_data, zero_train_data, valid_data, num_epoch):
     optimizer = optim.SGD(model.parameters(), lr=lr)
     num_student = train_data.shape[0]
 
+    traincosts = []
+    validaccs = []
     for epoch in range(0, num_epoch):
         train_loss = 0.
 
@@ -115,13 +120,35 @@ def train(model, lr, lamb, train_data, zero_train_data, valid_data, num_epoch):
 
             loss = torch.sum((output - target) ** 2.)
             loss.backward()
-
             train_loss += loss.item()
+
+            train_loss += lamb/2*model.get_weight_norm()
+
             optimizer.step()
 
         valid_acc = evaluate(model, zero_train_data, valid_data)
         print("Epoch: {} \tTraining Cost: {:.6f}\t "
               "Valid Acc: {}".format(epoch, train_loss, valid_acc))
+
+        validaccs.append(valid_acc)
+        traincosts.append(train_loss)
+
+    fig, ax1 = plt.subplots()
+    color = 'tab:red'
+    ax1.set_xlabel("epoch")
+    ax1.set_ylabel("training cost", color=color)
+    ax1.plot(list(range(1, num_epoch+1)), traincosts, color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx()
+    color = 'tab:blue'
+    ax2.set_ylabel("validation accuracy", color=color)
+    ax2.plot(list(range(1, num_epoch+1)), validaccs, color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    fig.tight_layout()
+    plt.show()
+    return model
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -154,6 +181,7 @@ def evaluate(model, train_data, valid_data):
 
 
 def main():
+    device = torch.device("cuda")
     zero_train_matrix, train_matrix, valid_data, test_data = load_data()
 
     #####################################################################
@@ -162,16 +190,19 @@ def main():
     # validation set.                                                   #
     #####################################################################
     # Set model hyperparameters.
-    k = None
-    model = None
+    k_vals = [10, 50, 100, 200, 500]
+    k = k_vals[0] # TODO: Loop over k_vals once this works
+    model = AutoEncoder(train_matrix.shape[1], 10)
 
     # Set optimization hyperparameters.
-    lr = None
-    num_epoch = None
-    lamb = None
+    lr = 0.05
+    num_epoch = 10
+    lamb = 0
 
-    train(model, lr, lamb, train_matrix, zero_train_matrix,
-          valid_data, num_epoch)
+    print("test accuracy:", evaluate(
+        train(model, 0.01, 0, train_matrix, zero_train_matrix, valid_data, 100),
+        zero_train_matrix, test_data))
+
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################

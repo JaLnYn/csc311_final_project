@@ -1,0 +1,81 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.1 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{ynt/global//global/global}
+    \entry{netflix}{article}{}
+      \name{author}{3}{}{%
+        {{hash=fce0a5d2aa4ba307f448e452e68fdbcb}{%
+           family={Koren},
+           familyi={K\bibinitperiod},
+           given={Yehuda},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=4ff3ffca1a595b355b42c528ad4e37a9}{%
+           family={Bell},
+           familyi={B\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=57bb7f21fb4a415436a1ab85ff5288c9}{%
+           family={Volinsky},
+           familyi={V\bibinitperiod},
+           given={Chris},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Washington, DC, USA}%
+      }
+      \list{publisher}{1}{%
+        {IEEE Computer Society Press}%
+      }
+      \strng{namehash}{d54573fe2b0878de7720297338fc4f5b}
+      \strng{fullhash}{d54573fe2b0878de7720297338fc4f5b}
+      \strng{bibnamehash}{d54573fe2b0878de7720297338fc4f5b}
+      \strng{authorbibnamehash}{d54573fe2b0878de7720297338fc4f5b}
+      \strng{authornamehash}{d54573fe2b0878de7720297338fc4f5b}
+      \strng{authorfullhash}{d54573fe2b0878de7720297338fc4f5b}
+      \field{labelalpha}{KBV09}
+      \field{sortinit}{2}
+      \field{sortinithash}{ed39bb39cf854d5250e95b1c1f94f4ed}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{As the Netflix Prize competition has demonstrated, matrix factorization models are superior to classic nearest-neighbor techniques for producing product recommendations, allowing the incorporation of additional information such as implicit feedback, temporal effects, and confidence levels.}
+      \field{issn}{0018-9162}
+      \field{journaltitle}{Computer}
+      \field{month}{8}
+      \field{number}{8}
+      \field{title}{Matrix Factorization Techniques for Recommender Systems}
+      \field{volume}{42}
+      \field{year}{2009}
+      \field{pages}{30\bibrangedash 37}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/MC.2009.263
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1109/MC.2009.263
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1109/MC.2009.263
+      \endverb
+      \keyw{Computational intelligence,Matrix factorization,Netflix Prize}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

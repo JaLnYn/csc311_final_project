@@ -1,0 +1,26 @@
+Sparse matrix:
+[[nan nan nan ... nan nan nan]
+ [nan  0. nan ... nan nan nan]
+ [nan nan  1. ... nan nan nan]
+ ...
+ [nan nan nan ... nan nan nan]
+ [nan nan nan ... nan nan nan]
+ [nan nan nan ... nan nan nan]]
+Shape of sparse matrix:
+(542, 1774)
+by users
+Validation Accuracy: 0.6244707874682472
+Validation Accuracy: 0.6780976573525261
+Validation Accuracy: 0.6895286480383855
+Validation Accuracy: 0.6755574372001129
+Validation Accuracy: 0.6692068868190799
+Validation Accuracy: 0.6522720858029918
+We find that the best value for k, k* is 11
+by questions
+Validation Accuracy: 0.607112616426757
+Validation Accuracy: 0.6542478125882021
+Validation Accuracy: 0.6826136042901496
+Validation Accuracy: 0.6860005644933672
+Validation Accuracy: 0.6922099915325995
+Validation Accuracy: 0.69037538808919
+We find that the best value for k, k* is 21
