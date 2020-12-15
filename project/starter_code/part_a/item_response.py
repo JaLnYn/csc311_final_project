@@ -1,5 +1,5 @@
 from utils import *
-
+import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -201,6 +201,26 @@ def main():
     plt.xlabel('Iterations', fontsize=14)
     plt.ylabel('loglike', fontsize=14)
     plt.legend(loc=1)
+    plt.show()
+
+    # (question d)
+    question = [1, 2, 3, 4, 5]
+    probs = {}
+    num_theta = len(theta)
+    for j in question:
+        probs[j] = []
+        beta_j = beta[j]
+        for i in range(num_theta):
+            probs[j].append(sigmoid(theta[i] - beta_j)[0])
+
+    sns.lineplot(x=theta, y=probs[1], label="question id 1")
+    sns.lineplot(x=theta, y=probs[2], label="question id 2")
+    sns.lineplot(x=theta, y=probs[3], label="question id 3")
+    sns.lineplot(x=theta, y=probs[4], label="question id 4")
+    sns.lineplot(x=theta, y=probs[5], label="question id 5")
+    plt.title("Change for probability")
+    plt.xlabel('theta', fontsize=14)
+    plt.ylabel('probability', fontsize=14)
     plt.show()
 
     #####################################################################
