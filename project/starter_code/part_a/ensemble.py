@@ -86,13 +86,13 @@ def main():
         "is_correct": validvals[:, 2]
     }, mfac_model))
 
-    #for i in range(num_tree):
-    #    boostrapt_sample = train_data.sample(frac=1, replace=True, random_state=i)
-    #    tree = DecisionTreeClassifier(random_state=1, min_samples_leaf=2,
-    #                                  splitter="random")
-    #    tree.fit(boostrapt_sample[predictors], boostrapt_sample['is_correct'])
-    #    test_preds.append(tree.predict(test_data[predictors]))
-    #    valid_preds.append(tree.predict(valid_data[predictors]))
+    for i in range(num_tree):
+        boostrapt_sample = train_data.sample(frac=1, replace=True, random_state=i)
+        tree = DecisionTreeClassifier(random_state=1, min_samples_leaf=2,
+                                      splitter="random")
+        tree.fit(boostrapt_sample[predictors], boostrapt_sample['is_correct'])
+        test_preds.append(tree.predict(test_data[predictors]))
+        valid_preds.append(tree.predict(valid_data[predictors]))
 
     comb_test_preds = np.sum(test_preds, axis=0) / 3
     comb_valid_preds = np.sum(valid_preds, axis=0) / 3

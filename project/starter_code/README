@@ -1,0 +1,14 @@
+PLEASE READ FOR INFORMATION ABOUT OUR PROJECT
+
+- Code relies on ./utils.py
+
+Part A) 
+- KNN code is in ./part_a/knn.py
+- IRT code is in ./part_a/item_response.py
+- AutoEncoder code is in ./part_a/neural_network.py
+    - Supporting output is in ./nn_output.zip. Summarized output is in ./nn_output/typescript
+    - We also did ./part_a/matrix_factorization.py
+- Ensembled model is in ./part_a/ensemble.py
+
+Part B)
+- Complete/final model is in ./part_a/mf3.py ("matrix factorization v3")

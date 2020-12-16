@@ -166,14 +166,6 @@ def als(train_data, k, lr, num_iteration, lmd, bootstrapped, should_bootstrap):
     best_matrix = None
     for i in range(num_iteration):
         if i >= 500000 and i % 1000 == 0:
-          cur_mat = np.add(np.add(np.dot(u, z.T),bu), bz.T)+ mu
-          loss = squared_error_loss(val_data,u,z,bu,bz,mu,lmd)[0]
-          if i % 100000 == 0:
-            print( loss, i, i/num_iteration)
-          if(best_loss > loss):
-            best_loss = loss
-            best_matrix = cur_mat
-            sgd_save(cur_mat, "./models/sgd_boot_0_k"+str(k))
           plot_x.append(i)
           plot_y.append(loss)
         u,z,bu,bz = update_u_z_b(train_data, lr, u,z,bu,bz,mu, lmd, bootstrapped, should_bootstrap)
